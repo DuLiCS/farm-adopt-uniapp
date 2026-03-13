@@ -39,6 +39,24 @@
       <view class="sensor-update" v-if="sensorData">更新于 {{ sensorUpdateText }}</view>
     </view>
 
+    <view class="chart-card">
+      <view class="chart-header">
+        <view class="chart-title">📈 环境趋势</view>
+        <view class="chart-tabs">
+          <view class="chart-tab" :class="{ active: chartHours === 24 }" @click="switchChart(24)">24小时</view>
+          <view class="chart-tab" :class="{ active: chartHours === 168 }" @click="switchChart(168)">7天</view>
+          <view class="chart-tab" :class="{ active: chartHours === 720 }" @click="switchChart(720)">30天</view>
+        </view>
+      </view>
+      <view class="chart-legend">
+        <view class="legend-item"><view class="legend-dot temp"></view>温度(°C)</view>
+        <view class="legend-item"><view class="legend-dot humi"></view>湿度(%)</view>
+      </view>
+      <canvas canvas-id="sensorChart" id="sensorChart" class="chart-canvas"></canvas>
+      <view v-if="chartLoading" class="chart-loading">加载中...</view>
+      <view v-if="!chartLoading && chartEmpty" class="chart-loading">暂无数据</view>
+    </view>
+
     <view class="plan-section" v-if="target && target.current_status === 'active'">
       <view class="section-title">选一个方式加入</view>
       <view class="plan-list">
@@ -99,6 +117,7 @@
 
 <script>
 import { getPlazaTargetDetail } from '@/api/plaza.js'
+import UCharts from '@/static/u-charts.min.js'
 import { PLANS } from '@/config.js'
 
 export default {
@@ -111,7 +130,10 @@ export default {
       loading: false,
       showAddressForm: false,
       address: { name: '', phone: '', address: '', note: '' },
-      sensorData: null
+      sensorData: null,
+      chartHours: 24,
+      chartLoading: false,
+      chartEmpty: false
     }
   },
 
@@ -187,6 +209,7 @@ export default {
     this.targetId = Number(options.target_id)
     this.loadDetail()
     this.loadSensorData()
+    this.loadChartData()
   },
 
   methods: {
@@ -206,6 +229,83 @@ export default {
         uni.showToast({ title: '加载失败', icon: 'none' })
       } finally {
         uni.hideLoading()
+      }
+    },
+
+    switchChart(hours) {
+      this.chartHours = hours
+      this.loadChartData()
+    },
+
+    async loadChartData() {
+      this.chartLoading = true
+      this.chartEmpty = false
+      try {
+        const res = await uni.request({
+          url: 'http://47.102.138.74/api/sensor/history?device_id=esp32-farm-01&hours=' + this.chartHours,
+          method: 'GET'
+        })
+        const data = res.data && res.data.data ? res.data.data : []
+        if (data.length === 0) {
+          this.chartEmpty = true
+          this.chartLoading = false
+          return
+        }
+        // 抽样：最多显示48个点
+        let sampled = data
+        if (data.length > 48) {
+          const step = Math.floor(data.length / 48)
+          sampled = data.filter((_, i) => i % step === 0)
+        }
+        const labels = sampled.map(d => {
+          const dt = new Date(d.recorded_at + 'Z')
+          if (this.chartHours <= 24) {
+            return dt.getHours().toString().padStart(2,'0') + ':' + dt.getMinutes().toString().padStart(2,'0')
+          } else if (this.chartHours <= 168) {
+            return (dt.getMonth()+1) + '/' + dt.getDate() + ' ' + dt.getHours().toString().padStart(2,'0') + 'h'
+          } else {
+            return (dt.getMonth()+1) + '/' + dt.getDate()
+          }
+        })
+        const temps = sampled.map(d => d.temperature !== null ? parseFloat(d.temperature.toFixed(1)) : null)
+        const humis = sampled.map(d => d.humidity !== null ? parseFloat(d.humidity.toFixed(1)) : null)
+        this.chartLoading = false
+        this.$nextTick(() => {
+          const ctx = uni.createCanvasContext('sensorChart', this)
+          new UCharts({
+            type: 'line',
+            context: ctx,
+            width: uni.upx2px(690),
+            height: uni.upx2px(400),
+            categories: labels,
+            series: [
+              {
+                name: '温度',
+                data: temps,
+                color: '#2d5a27',
+                filled: true,
+                fillOpacity: 0.15
+              },
+              {
+                name: '湿度',
+                data: humis,
+                color: '#5b9bd5',
+                filled: true,
+                fillOpacity: 0.1
+              }
+            ],
+            xAxis: { disableGrid: true, fontSize: 9 },
+            yAxis: { fontSize: 10, gridColor: '#f0f0f0' },
+            legend: { show: false },
+            background: '#ffffff',
+            padding: [20, 20, 20, 20],
+            dataLabel: false,
+            animation: true
+          })
+        })
+      } catch(e) {
+        this.chartLoading = false
+        this.chartEmpty = true
       }
     },
 
@@ -339,4 +439,18 @@ export default {
 .tag-blue { background: #e3f2fd; color: #1976d2; }
 .sensor-empty { text-align: center; color: #ccc; font-size: 26rpx; padding: 20rpx 0; }
 .sensor-update { font-size: 22rpx; color: #bbb; text-align: right; margin-top: 20rpx; }
+
+.chart-card { margin: 24rpx 30rpx; background: white; border-radius: 24rpx; padding: 36rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
+.chart-title { font-size: 28rpx; font-weight: 600; color: #2d5a27; }
+.chart-tabs { display: flex; gap: 12rpx; }
+.chart-tab { font-size: 22rpx; color: #999; padding: 8rpx 20rpx; border-radius: 999rpx; background: #f5f5f0; }
+.chart-tab.active { background: #2d5a27; color: white; }
+.chart-legend { display: flex; gap: 24rpx; margin-bottom: 16rpx; }
+.legend-item { display: flex; align-items: center; gap: 8rpx; font-size: 22rpx; color: #666; }
+.legend-dot { width: 16rpx; height: 16rpx; border-radius: 50%; }
+.legend-dot.temp { background: #2d5a27; }
+.legend-dot.humi { background: #5b9bd5; }
+.chart-canvas { width: 690rpx; height: 400rpx; }
+.chart-loading { text-align: center; color: #ccc; font-size: 26rpx; padding: 60rpx 0; }
 </style>
