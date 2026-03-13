@@ -16,29 +16,6 @@
       <view v-if="target.description" class="desc-text">{{ target.description }}</view>
     </view>
 
-    <view class="sensor-card">
-      <view class="sensor-title">🌿 农庄实况</view>
-      <view v-if="sensorData" class="sensor-grid">
-        <view class="sensor-item">
-          <view class="sensor-value">{{ sensorData.temperature !== null ? sensorData.temperature + '°C' : '--' }}</view>
-          <view class="sensor-label">温度</view>
-          <view class="sensor-tag" :class="tempTag.cls">{{ tempTag.text }}</view>
-        </view>
-        <view class="sensor-item">
-          <view class="sensor-value">{{ sensorData.humidity !== null ? sensorData.humidity + '%' : '--' }}</view>
-          <view class="sensor-label">湿度</view>
-          <view class="sensor-tag" :class="humidTag.cls">{{ humidTag.text }}</view>
-        </view>
-        <view class="sensor-item">
-          <view class="sensor-value">{{ sensorData.soil_moisture !== null ? sensorData.soil_moisture + '%' : '--' }}</view>
-          <view class="sensor-label">土壤湿度</view>
-          <view class="sensor-tag" :class="soilTag.cls">{{ soilTag.text }}</view>
-        </view>
-      </view>
-      <view v-else class="sensor-empty">暂无数据</view>
-      <view class="sensor-update" v-if="sensorData">更新于 {{ sensorUpdateText }}</view>
-    </view>
-
     <view class="plan-section" v-if="target && target.current_status === 'active'">
       <view class="section-title">选一个方式加入</view>
       <view class="plan-list">
@@ -110,8 +87,7 @@ export default {
       selectedPlanId: null,
       loading: false,
       showAddressForm: false,
-      address: { name: '', phone: '', address: '', note: '' },
-      sensorData: null
+      address: { name: '', phone: '', address: '', note: '' }
     }
   },
 
@@ -148,45 +124,12 @@ export default {
       if (this.target.current_status !== 'active') return '已被认养'
       if (!this.selectedPlanId) return '选好了再来'
       return '加入山南记'
-    },
-    tempTag() {
-      const v = this.sensorData && this.sensorData.temperature
-      if (v === null || v === undefined) return { text: '--', cls: '' }
-      if (v < 10) return { text: '偏冷', cls: 'tag-blue' }
-      if (v <= 25) return { text: '适宜', cls: 'tag-green' }
-      return { text: '偏热', cls: 'tag-orange' }
-    },
-    humidTag() {
-      const v = this.sensorData && this.sensorData.humidity
-      if (v === null || v === undefined) return { text: '--', cls: '' }
-      if (v < 40) return { text: '偏干', cls: 'tag-orange' }
-      if (v <= 70) return { text: '适中', cls: 'tag-green' }
-      return { text: '偏湿', cls: 'tag-blue' }
-    },
-    soilTag() {
-      const v = this.sensorData && this.sensorData.soil_moisture
-      if (v === null || v === undefined) return { text: '--', cls: '' }
-      if (v < 30) return { text: '偏干', cls: 'tag-orange' }
-      if (v <= 60) return { text: '适中', cls: 'tag-green' }
-      return { text: '偏湿', cls: 'tag-blue' }
-    },
-    sensorUpdateText() {
-      if (!this.sensorData || !this.sensorData.recorded_at) return ''
-      const now = new Date()
-      const recorded = new Date(this.sensorData.recorded_at)
-      const diffMin = Math.floor((now - recorded) / 60000)
-      if (diffMin < 1) return '刚刚'
-      if (diffMin < 60) return diffMin + '分钟前'
-      const diffHour = Math.floor(diffMin / 60)
-      if (diffHour < 24) return diffHour + '小时前'
-      return Math.floor(diffHour / 24) + '天前'
     }
   },
 
   onLoad(options) {
     this.targetId = Number(options.target_id)
     this.loadDetail()
-    this.loadSensorData()
   },
 
   methods: {
@@ -211,20 +154,6 @@ export default {
 
     selectPlan(plan) {
       this.selectedPlanId = plan.id
-    },
-
-    async loadSensorData() {
-      try {
-        const res = await uni.request({
-          url: 'http://47.102.138.74/api/sensor/latest?device_id=esp32-farm-01',
-          method: 'GET'
-        })
-        if (res.data && res.data.temperature !== undefined) {
-          this.sensorData = res.data
-        }
-      } catch (e) {
-        // 静默失败
-      }
     },
 
     submitOrder() {
@@ -326,17 +255,4 @@ export default {
 .cta-price { font-size: 32rpx; font-weight: bold; color: #2d5a27; margin-top: 8rpx; }
 .cta-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 30rpx; }
 .cta-btn-disabled { background: #ccc; color: #999; }
-
-.sensor-card { margin: 24rpx 30rpx; background: white; border-radius: 24rpx; padding: 36rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
-.sensor-title { font-size: 28rpx; font-weight: 600; color: #2d5a27; margin-bottom: 28rpx; }
-.sensor-grid { display: flex; justify-content: space-between; }
-.sensor-item { flex: 1; text-align: center; }
-.sensor-value { font-size: 36rpx; font-weight: bold; color: #333; }
-.sensor-label { font-size: 22rpx; color: #999; margin-top: 6rpx; }
-.sensor-tag { display: inline-block; margin-top: 10rpx; font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 999rpx; }
-.tag-green { background: #e8f5e2; color: #2d5a27; }
-.tag-orange { background: #fff3e0; color: #e67e22; }
-.tag-blue { background: #e3f2fd; color: #1976d2; }
-.sensor-empty { text-align: center; color: #ccc; font-size: 26rpx; padding: 20rpx 0; }
-.sensor-update { font-size: 22rpx; color: #bbb; text-align: right; margin-top: 20rpx; }
 </style>
