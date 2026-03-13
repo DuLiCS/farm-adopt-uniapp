@@ -251,24 +251,50 @@ export default {
           this.chartLoading = false
           return
         }
-        // 抽样：最多显示96个点
-        let sampled = data
-        if (data.length > 96) {
-          const step = Math.floor(data.length / 96)
-          sampled = data.filter((_, i) => i % step === 0)
+        let labels, temps, humis
+
+        if (this.chartHours <= 24) {
+          // 24h：按小时聚合，最多24个点
+          const buckets = {}
+          data.forEach(d => {
+            const dt = new Date(d.recorded_at + 'Z')
+            const key = dt.getHours().toString().padStart(2,'0') + 'h'
+            if (!buckets[key]) buckets[key] = { temps: [], humis: [] }
+            if (d.temperature !== null) buckets[key].temps.push(d.temperature)
+            if (d.humidity !== null) buckets[key].humis.push(d.humidity)
+          })
+          labels = Object.keys(buckets)
+          temps = labels.map(k => buckets[k].temps.length ? parseFloat((buckets[k].temps.reduce((a,b)=>a+b,0)/buckets[k].temps.length).toFixed(1)) : null)
+          humis = labels.map(k => buckets[k].humis.length ? parseFloat((buckets[k].humis.reduce((a,b)=>a+b,0)/buckets[k].humis.length).toFixed(1)) : null)
+
+        } else if (this.chartHours <= 168) {
+          // 7天：按小时聚合
+          const buckets = {}
+          data.forEach(d => {
+            const dt = new Date(d.recorded_at + 'Z')
+            const key = (dt.getMonth()+1) + '/' + dt.getDate() + ' ' + dt.getHours().toString().padStart(2,'0') + 'h'
+            if (!buckets[key]) buckets[key] = { temps: [], humis: [] }
+            if (d.temperature !== null) buckets[key].temps.push(d.temperature)
+            if (d.humidity !== null) buckets[key].humis.push(d.humidity)
+          })
+          labels = Object.keys(buckets)
+          temps = labels.map(k => buckets[k].temps.length ? parseFloat((buckets[k].temps.reduce((a,b)=>a+b,0)/buckets[k].temps.length).toFixed(1)) : null)
+          humis = labels.map(k => buckets[k].humis.length ? parseFloat((buckets[k].humis.reduce((a,b)=>a+b,0)/buckets[k].humis.length).toFixed(1)) : null)
+
+        } else {
+          // 30天：按天聚合
+          const buckets = {}
+          data.forEach(d => {
+            const dt = new Date(d.recorded_at + 'Z')
+            const key = (dt.getMonth()+1) + '/' + dt.getDate()
+            if (!buckets[key]) buckets[key] = { temps: [], humis: [] }
+            if (d.temperature !== null) buckets[key].temps.push(d.temperature)
+            if (d.humidity !== null) buckets[key].humis.push(d.humidity)
+          })
+          labels = Object.keys(buckets)
+          temps = labels.map(k => buckets[k].temps.length ? parseFloat((buckets[k].temps.reduce((a,b)=>a+b,0)/buckets[k].temps.length).toFixed(1)) : null)
+          humis = labels.map(k => buckets[k].humis.length ? parseFloat((buckets[k].humis.reduce((a,b)=>a+b,0)/buckets[k].humis.length).toFixed(1)) : null)
         }
-        const labels = sampled.map(d => {
-          const dt = new Date(d.recorded_at + 'Z')
-          if (this.chartHours <= 24) {
-            return dt.getHours().toString().padStart(2,'0') + ':' + dt.getMinutes().toString().padStart(2,'0')
-          } else if (this.chartHours <= 168) {
-            return (dt.getMonth()+1) + '/' + dt.getDate() + ' ' + dt.getHours().toString().padStart(2,'0') + 'h'
-          } else {
-            return (dt.getMonth()+1) + '/' + dt.getDate()
-          }
-        })
-        const temps = sampled.map(d => d.temperature !== null ? parseFloat(d.temperature.toFixed(1)) : null)
-        const humis = sampled.map(d => d.humidity !== null ? parseFloat(d.humidity.toFixed(1)) : null)
         this.chartLoading = false
         this.$nextTick(() => {
           const ctx = uni.createCanvasContext('sensorChart', this)
