@@ -251,10 +251,10 @@ export default {
           this.chartLoading = false
           return
         }
-        // 抽样：最多显示48个点
+        // 抽样：最多显示96个点
         let sampled = data
-        if (data.length > 48) {
-          const step = Math.floor(data.length / 48)
+        if (data.length > 96) {
+          const step = Math.floor(data.length / 96)
           sampled = data.filter((_, i) => i % step === 0)
         }
         const labels = sampled.map(d => {
