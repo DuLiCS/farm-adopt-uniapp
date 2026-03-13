@@ -36,10 +36,28 @@
     <view v-if="showAddressForm" class="address-mask" @click.self="showAddressForm=false">
       <view class="address-form">
         <view class="form-title">填写收货信息</view>
-        <input class="form-input" v-model="address.name" placeholder="收货人姓名 *" />
-        <input class="form-input" v-model="address.phone" placeholder="手机号码 *" />
-        <input class="form-input" v-model="address.address" placeholder="详细地址（省市区+街道）*" />
-        <input class="form-input" v-model="address.note" placeholder="备注（可选）" />
+        <view class="form-subtitle">寄茶时我们会用到这里的地址</view>
+
+        <view class="form-group">
+          <view class="form-label">收货人 <text class="required">*</text></view>
+          <input class="form-input" v-model="address.name" placeholder="请输入姓名" />
+        </view>
+
+        <view class="form-group">
+          <view class="form-label">手机号 <text class="required">*</text></view>
+          <input class="form-input" v-model="address.phone" type="number" placeholder="请输入手机号" maxlength="11" />
+        </view>
+
+        <view class="form-group">
+          <view class="form-label">收货地址 <text class="required">*</text></view>
+          <input class="form-input" v-model="address.address" placeholder="省 / 市 / 区 / 街道门牌号" />
+        </view>
+
+        <view class="form-group">
+          <view class="form-label">备注</view>
+          <input class="form-input" v-model="address.note" placeholder="如：放门卫处（可不填）" />
+        </view>
+
         <button class="form-submit-btn" @click="confirmOrder">确认下单</button>
         <button class="form-cancel-btn" @click="showAddressForm=false">取消</button>
       </view>
@@ -221,11 +239,15 @@ export default {
 .notice-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 .notice-text { font-size: 28rpx; color: #666; }
 .address-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; }
-.address-form { background: white; width: 100%; border-radius: 24rpx 24rpx 0 0; padding: 40rpx; padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); }
-.form-title { font-size: 32rpx; font-weight: bold; color: #333; margin-bottom: 32rpx; text-align: center; }
-.form-input { width: 100%; border: 1px solid #e0e0e0; border-radius: 12rpx; padding: 24rpx; margin-bottom: 20rpx; font-size: 28rpx; box-sizing: border-box; }
-.form-submit-btn { width: 100%; background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 24rpx; font-size: 30rpx; margin-top: 16rpx; }
-.form-cancel-btn { width: 100%; background: none; color: #999; border: none; font-size: 28rpx; margin-top: 16rpx; padding: 16rpx; }
+.address-form { background: white; width: 100%; border-radius: 24rpx 24rpx 0 0; padding: 40rpx; padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); max-height: 85vh; overflow-y: auto; }
+.form-title { font-size: 32rpx; font-weight: bold; color: #333; text-align: center; }
+.form-subtitle { font-size: 24rpx; color: #aaa; text-align: center; margin-top: 8rpx; margin-bottom: 32rpx; }
+.form-group { margin-bottom: 24rpx; }
+.form-label { font-size: 26rpx; color: #555; margin-bottom: 10rpx; }
+.required { color: #e74c3c; }
+.form-input { width: 100%; border: 1rpx solid #e0e0e0; border-radius: 12rpx; padding: 22rpx 24rpx; font-size: 28rpx; box-sizing: border-box; background: #fafafa; }
+.form-submit-btn { width: 100%; background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 24rpx; font-size: 30rpx; margin-top: 24rpx; }
+.form-cancel-btn { width: 100%; background: none; color: #999; border: none; font-size: 28rpx; margin-top: 12rpx; padding: 16rpx; }
 .cta-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 24rpx 30rpx; background: white; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.08); padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); }
 .cta-info { flex: 1; }
 .cta-label { font-size: 24rpx; color: #999; }
