@@ -173,7 +173,7 @@ export default {
     sensorUpdateText() {
       if (!this.sensorData || !this.sensorData.recorded_at) return ''
       const now = new Date()
-      const recorded = new Date(this.sensorData.recorded_at + '+08:00')
+      const recorded = new Date(this.sensorData.recorded_at + 'Z')
       const diffMin = Math.floor((now - recorded) / 60000)
       if (diffMin < 1) return '刚刚'
       if (diffMin < 60) return diffMin + '分钟前'
