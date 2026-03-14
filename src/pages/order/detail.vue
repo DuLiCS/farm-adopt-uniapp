@@ -2,10 +2,31 @@
   <view class="container">
     <!-- 段一：全屏头图 -->
     <view class="hero-section">
-      <image class="hero-bg" :src="heroImage" mode="aspectFill" />
+      <image v-if="heroImage" class="hero-bg" :src="heroImage" mode="aspectFill" />
+      <view v-else class="hero-bg-default"></view>
+      <!-- 渐变遮罩 -->
+      <view class="hero-gradient"></view>
+      <!-- 悬浮标题 -->
       <view class="hero-overlay">
         <view class="hero-date">{{ todayStr }} · {{ weatherHint }}</view>
         <view class="hero-title">你的{{ targetTypeLabel }} 🌿</view>
+      </view>
+      <!-- 毛玻璃信息卡 -->
+      <view class="hero-glass-card" v-if="order">
+        <view class="glass-item">
+          <view class="glass-label">认养对象</view>
+          <view class="glass-value">{{ order.target?.name || '#' + order.target_id }}</view>
+        </view>
+        <view class="glass-divider"></view>
+        <view class="glass-item">
+          <view class="glass-label">第</view>
+          <view class="glass-value">{{ adoptDays }}<text class="glass-unit">天</text></view>
+        </view>
+        <view class="glass-divider"></view>
+        <view class="glass-item">
+          <view class="glass-label">到期</view>
+          <view class="glass-value">{{ order.expire_date ? order.expire_date.substring(5) : '--' }}</view>
+        </view>
       </view>
     </view>
 
@@ -98,12 +119,20 @@ const latestUpdate = computed(() => {
 })
 
 const heroImage = computed(() => {
-  // 优先使用最新更新的第一张图，否则用在线示例图
+  // 优先使用最新更新的第一张图
   if (updates.value.length > 0 && updates.value[0].image_urls?.length > 0) {
-    return updates.value[0].image_urls[0]
+    const url = updates.value[0].image_urls[0]
+    if (url.startsWith('http')) return url
+    return 'http://47.102.138.74' + url
   }
-  // 使用 Unsplash 在线图片（确保可访问）
-  return 'https://images.unsplash.com/photo-1516934024742-b461fba47600?w=800&h=600&fit=crop'
+  // 其次用认养对象的cover_image
+  if (order.value?.target?.cover_image) {
+    const cover = order.value.target.cover_image
+    if (cover.startsWith('http')) return cover
+    return 'http://47.102.138.74' + cover
+  }
+  // 最后用默认绿色背景（返回空，让 hero-section 显示默认背景）
+  return ''
 })
 
 const logTypeEmoji = (type) => {
@@ -169,31 +198,88 @@ const loadData = async () => {
 /* 头图区 */
 .hero-section {
   position: relative;
-  height: 50vh;
+  height: 56vh;
   width: 100%;
   overflow: hidden;
 }
 .hero-bg {
+  position: absolute;
+  top: 0; left: 0;
   width: 100%;
   height: 100%;
 }
+.hero-bg-default {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
+}
+.hero-gradient {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.0) 30%, rgba(0,0,0,0.5) 70%, rgba(0,0,0,0.75) 100%);
+  z-index: 1;
+}
 .hero-overlay {
   position: absolute;
-  bottom: 0;
+  top: 80rpx;
   left: 0;
   right: 0;
-  padding: 40rpx;
-  background: linear-gradient(transparent, rgba(0,0,0,0.5));
+  padding: 0 40rpx;
   color: white;
+  z-index: 2;
 }
 .hero-title {
-  font-size: 48rpx;
+  font-size: 52rpx;
   font-weight: bold;
   margin-top: 8rpx;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 .hero-date {
-  font-size: 28rpx;
-  opacity: 0.8;
+  font-size: 26rpx;
+  opacity: 0.85;
+}
+.hero-glass-card {
+  position: absolute;
+  bottom: 40rpx;
+  left: 30rpx;
+  right: 30rpx;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1rpx solid rgba(255,255,255,0.3);
+  border-radius: 24rpx;
+  padding: 28rpx 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+.glass-item {
+  flex: 1;
+  text-align: center;
+}
+.glass-label {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 6rpx;
+}
+.glass-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.glass-unit {
+  font-size: 22rpx;
+  font-weight: normal;
+  margin-left: 2rpx;
+}
+.glass-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: rgba(255,255,255,0.3);
 }
 
 /* 状态卡片 */
@@ -321,5 +407,11 @@ const loadData = async () => {
 .status-badge.SENT {
   color: #f0a500;
   background: #fff8e1;
+}
+
+.hero-bg-default {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
 }
 </style>
