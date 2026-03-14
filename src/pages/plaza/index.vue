@@ -67,6 +67,19 @@
       </view>
     </view>
 
+    <!-- 农庄日志 -->
+    <view class="log-section" v-if="latestLog">
+      <view class="log-card">
+        <view class="log-header">
+          <view class="log-tag">{{ logTypeLabel(latestLog.log_type) }}</view>
+          <view class="log-time">{{ formatLogTime(latestLog.updated_at) }}</view>
+        </view>
+        <view class="log-title" v-if="latestLog.title">{{ latestLog.title }}</view>
+        <view class="log-desc">{{ truncateLog(latestLog.description) }}</view>
+        <view class="log-more" @click="goLogs">查看更多日志 →</view>
+      </view>
+    </view>
+
     <!-- 哲学文案区 -->
     <view class="philosophy-section">
       <view class="philosophy-text">
@@ -85,7 +98,8 @@ export default {
       availableTargets: [],
       adoptedTargets: [],
       isLoggedIn: false,
-      sensorData: null
+      sensorData: null,
+      latestLog: null
     }
   },
 
@@ -98,6 +112,7 @@ export default {
   onLoad() {
     this.loadTargets()
     this.loadSensorData()
+    this.loadLatestLog()
   },
 
   computed: {
@@ -115,6 +130,38 @@ export default {
   },
 
   methods: {
+    async loadLatestLog() {
+      try {
+        const res = await uni.request({
+          url: 'http://47.102.138.74/api/logs/latest',
+          method: 'GET'
+        })
+        if (res.data && res.data.data) {
+          this.latestLog = res.data.data
+        }
+      } catch (e) {}
+    },
+
+    goLogs() {
+      uni.navigateTo({ url: '/pages/logs/index' })
+    },
+
+    logTypeLabel(type) {
+      const map = { daily: '日常', DAILY: '日常', solar_term: '节气', SOLAR_TERM: '节气', harvest: '收获', HARVEST: '收获', delivery: '配送', DELIVERY: '配送' }
+      return map[type] || '日志'
+    },
+
+    truncateLog(str) {
+      if (!str) return ''
+      return str.length > 80 ? str.substring(0, 80) + '...' : str
+    },
+
+    formatLogTime(t) {
+      if (!t) return ''
+      const dt = new Date(t + 'Z')
+      return (dt.getMonth()+1) + '月' + dt.getDate() + '日'
+    },
+
     async loadSensorData() {
       try {
         const res = await uni.request({
@@ -263,4 +310,13 @@ export default {
 .sensor-bar-item { font-size: 24rpx; color: #2d5a27; }
 .sensor-bar-divider { font-size: 24rpx; color: #aaa; }
 .sensor-bar-time { color: #999; margin-left: auto; }
+
+.log-section { padding: 0 32rpx 40rpx; }
+.log-card { background: white; border-radius: 16rpx; padding: 32rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.log-tag { font-size: 22rpx; color: white; background: #2d5a27; padding: 4rpx 16rpx; border-radius: 999rpx; }
+.log-time { font-size: 22rpx; color: #bbb; }
+.log-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 12rpx; }
+.log-desc { font-size: 26rpx; color: #666; line-height: 1.7; margin-bottom: 20rpx; }
+.log-more { font-size: 24rpx; color: #2d5a27; text-align: right; }
 </style>

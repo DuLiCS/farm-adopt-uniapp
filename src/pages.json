@@ -1,13 +1,63 @@
 {
   "pages": [
-    {"path": "pages/plaza/index", "style": {"navigationBarTitleText": "山南广场", "navigationBarBackgroundColor": "#2d5a27", "navigationBarTextStyle": "white"}},
-    {"path": "pages/plaza/preview", "style": {"navigationBarTitleText": "详情"}},
-    {"path": "pages/home/index", "style": {"navigationBarTitleText": "我的山南"}},
-    {"path": "pages/shop/index", "style": {"navigationBarTitleText": "山南套餐"}},
-    {"path": "pages/login/index", "style": {"navigationBarTitleText": "登录"}},
-    {"path": "pages/register/index", "style": {"navigationBarTitleText": "注册"}},
-    {"path": "pages/order/detail", "style": {"navigationBarTitleText": "订单详情"}},
-    {"path": "pages/order/updates", "style": {"navigationBarTitleText": "更新记录"}}
+    {
+      "path": "pages/plaza/index",
+      "style": {
+        "navigationBarTitleText": "山南广场",
+        "navigationBarBackgroundColor": "#2d5a27",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/plaza/preview",
+      "style": {
+        "navigationBarTitleText": "详情"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "我的山南"
+      }
+    },
+    {
+      "path": "pages/shop/index",
+      "style": {
+        "navigationBarTitleText": "山南套餐"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "注册"
+      }
+    },
+    {
+      "path": "pages/order/detail",
+      "style": {
+        "navigationBarTitleText": "订单详情"
+      }
+    },
+    {
+      "path": "pages/order/updates",
+      "style": {
+        "navigationBarTitleText": "更新记录"
+      }
+    },
+    {
+      "path": "pages/logs/index",
+      "style": {
+        "navigationBarTitleText": "农庄日志",
+        "navigationBarBackgroundColor": "#2d5a27",
+        "navigationBarTextStyle": "white"
+      }
+    }
   ],
   "globalStyle": {
     "navigationBarBackgroundColor": "#2d5a27",
@@ -18,9 +68,18 @@
     "color": "#666",
     "selectedColor": "#2d5a27",
     "list": [
-      {"pagePath": "pages/plaza/index", "text": "山南广场"},
-      {"pagePath": "pages/home/index", "text": "我的山南"},
-      {"pagePath": "pages/shop/index", "text": "山南套餐"}
+      {
+        "pagePath": "pages/plaza/index",
+        "text": "山南广场"
+      },
+      {
+        "pagePath": "pages/home/index",
+        "text": "我的山南"
+      },
+      {
+        "pagePath": "pages/shop/index",
+        "text": "山南套餐"
+      }
     ]
   }
 }
