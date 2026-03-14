@@ -17,6 +17,15 @@
       </view>
     </view>
 
+    <!-- 传感器实况角标 -->
+    <view class="sensor-bar" v-if="sensorData">
+      <view class="sensor-bar-item">🌡 {{ sensorData.temperature }}°C</view>
+      <view class="sensor-bar-divider">·</view>
+      <view class="sensor-bar-item">💧 {{ sensorData.humidity }}%</view>
+      <view class="sensor-bar-divider">·</view>
+      <view class="sensor-bar-item sensor-bar-time">{{ sensorUpdateText }}</view>
+    </view>
+
     <!-- 山南对象列表 -->
     <view class="section">
       <view class="section-title">还没有主人</view>
@@ -75,7 +84,8 @@ export default {
     return {
       availableTargets: [],
       adoptedTargets: [],
-      isLoggedIn: false
+      isLoggedIn: false,
+      sensorData: null
     }
   },
 
@@ -87,9 +97,36 @@ export default {
 
   onLoad() {
     this.loadTargets()
+    this.loadSensorData()
+  },
+
+  computed: {
+    sensorUpdateText() {
+      if (!this.sensorData || !this.sensorData.recorded_at) return ''
+      const now = new Date()
+      const recorded = new Date(this.sensorData.recorded_at + 'Z')
+      const diffMin = Math.floor((now - recorded) / 60000)
+      if (diffMin < 1) return '刚刚更新'
+      if (diffMin < 60) return diffMin + '分钟前更新'
+      const diffHour = Math.floor(diffMin / 60)
+      if (diffHour < 24) return diffHour + '小时前更新'
+      return Math.floor(diffHour / 24) + '天前更新'
+    }
   },
 
   methods: {
+    async loadSensorData() {
+      try {
+        const res = await uni.request({
+          url: 'http://47.102.138.74/api/sensor/latest?device_id=esp32-farm-01',
+          method: 'GET'
+        })
+        if (res.data && res.data.temperature !== undefined) {
+          this.sensorData = res.data
+        }
+      } catch (e) {}
+    },
+
     async loadTargets() {
       try {
         const targets = await getPlazaTargets()
@@ -216,4 +253,14 @@ export default {
 .philosophy-text {
   font-size: 28rpx; color: #666; line-height: 1.8; font-style: italic;
 }
+
+.sensor-bar {
+  display: flex; align-items: center;
+  background: rgba(45,90,39,0.08);
+  padding: 16rpx 32rpx;
+  gap: 12rpx;
+}
+.sensor-bar-item { font-size: 24rpx; color: #2d5a27; }
+.sensor-bar-divider { font-size: 24rpx; color: #aaa; }
+.sensor-bar-time { color: #999; margin-left: auto; }
 </style>
