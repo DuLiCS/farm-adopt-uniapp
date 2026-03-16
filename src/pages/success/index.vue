@@ -83,67 +83,75 @@ export default {
  this.$nextTick(() => { this.drawPoster() })
  },
  drawPoster() {
- const ctx = uni.createCanvasContext('successPoster', this)
  const sysInfo = uni.getSystemInfoSync()
-     const W = sysInfo.windowWidth
-     const H = Math.round(W * 1120 / 630)
- const grad = ctx.createLinearGradient(0, 0, 0, H)
+ const W = sysInfo.windowWidth
+ const H = Math.round(W * 16 / 9)
+ const ctx = uni.createCanvasContext(successPoster, this)
+
+ // 背景渐变
+ const grad = ctx.createLinearGradient(0, 0, W, H)
  grad.addColorStop(0, '#1a3d16')
- grad.addColorStop(1, '#2d5a27')
+ grad.addColorStop(0.6, '#2d5a27')
+ grad.addColorStop(1, '#3d6b32')
  ctx.setFillStyle(grad)
  ctx.fillRect(0, 0, W, H)
 
- ctx.setFillStyle('rgba(255,255,255,0.06)')
- ctx.beginPath()
- ctx.arc(W + 80, -80, 380, 0, Math.PI * 2)
- ctx.fill()
-
+ // 装饰圆
  ctx.setFillStyle('rgba(255,255,255,0.04)')
  ctx.beginPath()
- ctx.arc(-60, H - 80, 280, 0, Math.PI * 2)
+ ctx.arc(W * 0.85, H * 0.12, W * 0.5, 0, Math.PI * 2)
+ ctx.fill()
+ ctx.setFillStyle('rgba(255,255,255,0.03)')
+ ctx.beginPath()
+ ctx.arc(W * 0.1, H * 0.85, W * 0.4, 0, Math.PI * 2)
  ctx.fill()
 
  ctx.setTextAlign('center')
- ctx.setFontSize(26)
- ctx.setFillStyle('rgba(255,255,255,0.5)')
- ctx.fillText('我在山南记守候着一棵树', W / 2, 120)
 
- ctx.setFillStyle('rgba(255,255,255,0.15)')
- ctx.fillRect(W/2 - 80, 145, 160, 1)
-
- ctx.setFontSize(22)
- ctx.setFillStyle('rgba(255,255,255,0.4)')
- ctx.fillText('秦岭南麓 · 汉中西乡', W / 2, 185)
-
- ctx.setFontSize(100)
- ctx.setFillStyle('rgba(255,255,255,0.12)')
- ctx.fillText('🍃', W / 2, 480)
-
- ctx.setFontSize(46)
- ctx.setFillStyle('#ffffff')
- ctx.fillText(this.targetName || '我的茶树', W / 2, 580)
-
- ctx.setFontSize(26)
- ctx.setFillStyle('rgba(255,255,255,0.6)')
- ctx.fillText('认养编号 #' + this.orderId, W / 2, 645)
- ctx.fillText('守候开始于 ' + this.today, W / 2, 695)
-
- ctx.setFillStyle('rgba(255,255,255,0.12)')
- ctx.fillRect(80, 750, W - 160, 1)
-
- ctx.setFontSize(32)
- ctx.setFillStyle('rgba(255,255,255,0.9)')
- ctx.fillText('山南记', W / 2, 820)
-
- ctx.setFontSize(24)
- ctx.setFillStyle('rgba(255,255,255,0.5)')
- ctx.fillText('shannanji.com', W / 2, 865)
-
+ // 顶部标签
  ctx.setFontSize(20)
- ctx.setFillStyle('rgba(255,255,255,0.3)')
- ctx.fillText('扫码认养同款，守候一棵树', W / 2, 910)
+ ctx.setFillStyle('rgba(255,255,255,0.4)')
+ ctx.fillText('— 山南记 · 认养证书 —', W / 2, H * 0.12)
+
+ // 大字 emoji
+ ctx.setFontSize(Math.round(W * 0.18))
+ ctx.fillText('🍃', W / 2, H * 0.35)
+
+ // 主标题
+ ctx.setFontSize(Math.round(W * 0.072))
+ ctx.setFillStyle('#ffffff')
+ ctx.fillText(this.targetName || '我的茶树', W / 2, H * 0.48)
+
+ // 副标题
+ ctx.setFontSize(Math.round(W * 0.038))
+ ctx.setFillStyle('rgba(255,255,255,0.55)')
+ ctx.fillText('我在山南记守候着这棵树', W / 2, H * 0.56)
+
+ // 分割线
+ ctx.setFillStyle('rgba(255,255,255,0.15)')
+ ctx.fillRect(W * 0.25, H * 0.62, W * 0.5, 1)
+
+ // 信息行
+ ctx.setFontSize(Math.round(W * 0.034))
+ ctx.setFillStyle('rgba(255,255,255,0.5)')
+ ctx.fillText('秦岭南麓 · 陕西汉中西乡', W / 2, H * 0.68)
+ ctx.fillText('守候开始于 ' + (this.today).substring(0, 10), W / 2, H * 0.74)
+
+ // 底部分割线
+ ctx.setFillStyle('rgba(255,255,255,0.1)')
+ ctx.fillRect(W * 0.1, H * 0.83, W * 0.8, 1)
+
+ // 品牌
+ ctx.setFontSize(Math.round(W * 0.052))
+ ctx.setFillStyle('rgba(255,255,255,0.85)')
+ ctx.fillText('山南记', W / 2, H * 0.89)
+
+ ctx.setFontSize(Math.round(W * 0.036))
+ ctx.setFillStyle('rgba(255,255,255,0.4)')
+ ctx.fillText('shannanji.com', W / 2, H * 0.94)
 
  ctx.draw()
+
  },
  savePoster() {
  uni.canvasToTempFilePath({
@@ -207,7 +215,7 @@ export default {
 .btn-secondary { width: 100%; background: rgba(255,255,255,0.15); color: white; border: 1rpx solid rgba(255,255,255,0.3); border-radius: 999rpx; padding: 28rpx; font-size: 30rpx; }
 .poster-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .poster-wrap { display: flex; flex-direction: column; align-items: center; }
-.poster-canvas { width: 100vw; max-width: 630rpx; height: 85vh; border-radius: 16rpx; }
+.poster-canvas { width: 100vw; height: 56.25vw; border-radius: 12rpx; }
 .poster-actions { margin-top: 32rpx; display: flex; gap: 24rpx; }
 .poster-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
 .poster-close-btn { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
