@@ -65,6 +65,14 @@
         "navigationBarBackgroundColor": "#2d5a27",
         "navigationBarTextStyle": "white"
       }
+    },
+    {
+      "path": "pages/camera/index",
+      "style": {
+        "navigationBarTitleText": "探望我的树",
+        "navigationBarBackgroundColor": "#1a3d16",
+        "navigationBarTextStyle": "white"
+      }
     }
   ],
   "globalStyle": {

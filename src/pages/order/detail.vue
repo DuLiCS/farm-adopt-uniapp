@@ -79,6 +79,14 @@
     <!-- 返回按钮 -->
     <view style="text-align: center; margin: 32rpx 0;">
       <text style="color: #999; font-size: 28rpx; cursor: pointer;" @click="goBack">返回列表</text>
+    <!-- 探望入口 -->
+    <view class="visit-bar">
+      <view class="visit-btn" @click="goVisit">
+        <text class="visit-icon">📷</text>
+        <text class="visit-text">探望我的树</text>
+        <text class="visit-sub">查看实时照片与历史时间轴</text>
+      </view>
+    </view>
     </view>
   </view>
 </template>
@@ -414,4 +422,21 @@ const loadData = async () => {
   height: 100%;
   background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
 }
+.visit-bar {
+  margin: 32rpx 30rpx 0;
+}
+.visit-btn {
+  background: linear-gradient(135deg, #1a3d16 0%, #2d5a27 100%);
+  border-radius: 20rpx;
+  padding: 36rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  box-shadow: 0 4rpx 20rpx rgba(45,90,39,0.3);
+}
+.visit-icon { font-size: 48rpx; }
+.visit-text { font-size: 32rpx; font-weight: bold; color: white; }
+.visit-sub { font-size: 22rpx; color: rgba(255,255,255,0.6); }
+
 </style>
