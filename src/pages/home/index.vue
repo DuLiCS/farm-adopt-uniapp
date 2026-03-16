@@ -185,7 +185,7 @@ export default {
  const uniEl = document.getElementById('homePoster')
  if (!uniEl) return
  const el = uniEl.querySelector('canvas.uni-canvas-canvas') || uniEl
- const W = Math.min(window.innerWidth, 630)
+ const W = Math.min(el.offsetWidth || window.innerWidth, 630)
  const H = Math.round(W * 16 / 9)
  el.width = W
  el.height = H
