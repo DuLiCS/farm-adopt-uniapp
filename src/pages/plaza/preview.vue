@@ -105,6 +105,7 @@
     </view>
 
     <view class="cta-bar" v-if="target">
+    <view class="poster-icon-btn" @click="openPoster">🖼</view>
       <view class="cta-info">
         <view class="cta-label">认养方式</view>
         <view class="cta-plan-name">{{ selectedPlanName || '请选择套餐' }}</view>
@@ -113,6 +114,18 @@
       <button :disabled="!canSubmit" :class="!canSubmit ? 'cta-btn-disabled' : 'cta-btn'" @click="submitOrder">{{ submitBtnText }}</button>
     </view>
   </view>
+
+<!-- 海报弹窗 -->
+<view v-if="showPoster" class="poster-mask" @click.self="showPoster=false">
+ <view class="poster-wrap">
+ <canvas canvas-id="posterCanvas" id="posterCanvas" class="poster-canvas"></canvas>
+ <view class="poster-actions">
+ <button class="poster-save-btn" @click="savePoster">保存到相册</button>
+ <button class="poster-close-btn" @click="showPoster=false">关闭</button>
+ </view>
+ </view>
+</view>
+
 </template>
 
 <script>
@@ -121,15 +134,16 @@ import UCharts from '@/static/u-charts.min.js'
 import { PLANS } from '@/config.js'
 
 export default {
-  data() {
-    return {
+  data() {return {
       target: null,
       updates: [],
       targetId: null,
       selectedPlanId: null,
       loading: false,
       showAddressForm: false,
-      address: { name: '', phone: '', address: '', note: '' },
+      address: { name: '', phone: '', address: '', note: '',
+      showPoster: false
+    },
       sensorData: null,
       chartHours: 24,
       chartLoading: false,
@@ -213,6 +227,112 @@ export default {
   },
 
   methods: {
+
+    openPoster() {
+      if (!this.target) return
+      this.showPoster = true
+      this.$nextTick(() => {
+        this.drawPoster()
+      })
+    },
+
+    drawPoster() {
+      const ctx = uni.createCanvasContext('posterCanvas', this)
+      const W = 630
+      const H = 1120
+
+      // 背景渐变
+      const grad = ctx.createLinearGradient(0, 0, 0, H)
+      grad.addColorStop(0, '#1a3d16')
+      grad.addColorStop(1, '#2d5a27')
+      ctx.setFillStyle(grad)
+      ctx.fillRect(0, 0, W, H)
+
+      // 封面图
+      const imgUrl = this.target.cover_image ? this.getFullImageUrl(this.target.cover_image) : ''
+      const drawContent = () => {
+        // 标题区
+        ctx.setFillStyle('rgba(255,255,255,0.12)')
+        ctx.fillRect(0, 380, W, 2)
+
+        // 品牌名
+        ctx.setFillStyle('#ffffff')
+        ctx.setFontSize(42)
+        ctx.setTextAlign('center')
+        ctx.fillText('山南记', W / 2, 460)
+
+        // 认养对象名
+        ctx.setFontSize(32)
+        ctx.setFillStyle('rgba(255,255,255,0.9)')
+        ctx.fillText(this.target.name || '', W / 2, 520)
+
+        // slogan
+        ctx.setFontSize(24)
+        ctx.setFillStyle('rgba(255,255,255,0.6)')
+        ctx.fillText('一棵树，一段时光', W / 2, 580)
+
+        // 分割线
+        ctx.setFillStyle('rgba(255,255,255,0.15)')
+        ctx.fillRect(W/2 - 60, 610, 120, 1)
+
+        // 位置
+        ctx.setFontSize(22)
+        ctx.setFillStyle('rgba(255,255,255,0.5)')
+        ctx.fillText('陕西 · 汉中 · 秦岭南麓', W / 2, 650)
+
+        // 日期
+        ctx.fillText(this.todayStr, W / 2, 690)
+
+        // 底部网址
+        ctx.setFontSize(26)
+        ctx.setFillStyle('rgba(255,255,255,0.8)')
+        ctx.fillText('shannanji.com', W / 2, 1050)
+
+        ctx.setFontSize(20)
+        ctx.setFillStyle('rgba(255,255,255,0.4)')
+        ctx.fillText('扫码认养同款', W / 2, 1085)
+
+        ctx.draw()
+      }
+
+      if (imgUrl) {
+        ctx.drawImage(imgUrl, 0, 60, W, 320)
+        // 图片上方渐变遮罩
+        const maskGrad = ctx.createLinearGradient(0, 300, 0, 390)
+        maskGrad.addColorStop(0, 'rgba(29,61,22,0)')
+        maskGrad.addColorStop(1, 'rgba(29,61,22,1)')
+        ctx.setFillStyle(maskGrad)
+        ctx.fillRect(0, 300, W, 90)
+        drawContent()
+      } else {
+        // 无图时用 emoji 占位
+        ctx.setFontSize(80)
+        ctx.setTextAlign('center')
+        ctx.fillText('🍃', W / 2, 230)
+        drawContent()
+      }
+    },
+
+    savePoster() {
+      uni.canvasToTempFilePath({
+        canvasId: 'posterCanvas',
+        success: (res) => {
+          uni.saveImageToPhotosAlbum({
+            filePath: res.tempFilePath,
+            success: () => {
+              uni.showToast({ title: '已保存到相册', icon: 'success' })
+            },
+            fail: () => {
+              uni.showToast({ title: '保存失败，请长按图片保存', icon: 'none' })
+            }
+          })
+        },
+        fail: () => {
+          uni.showToast({ title: '生成失败', icon: 'none' })
+        }
+      }, this)
+    },
+
     getFullImageUrl(path) {
       if (!path) return ''
       if (path.startsWith('http')) return path
@@ -480,4 +600,13 @@ export default {
 .legend-dot.humi { background: #5b9bd5; }
 .chart-canvas { width: 690rpx; height: 400rpx; }
 .chart-loading { text-align: center; color: #ccc; font-size: 26rpx; padding: 60rpx 0; }
+
+.poster-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.poster-wrap { display: flex; flex-direction: column; align-items: center; }
+.poster-canvas { width: 630rpx; height: 1120rpx; border-radius: 16rpx; overflow: hidden; }
+.poster-actions { margin-top: 32rpx; display: flex; gap: 24rpx; }
+.poster-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
+.poster-close-btn { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
+.poster-icon-btn { font-size: 40rpx; padding: 8rpx 16rpx; margin-right: 16rpx; }
+
 </style>
