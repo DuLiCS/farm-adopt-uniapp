@@ -55,6 +55,7 @@ export default {
       try {
         const res = await login(this.phone, this.password)
         uni.setStorageSync('token', res.access_token)
+ uni.setStorageSync('phone', this.phone)
         uni.hideLoading()
         uni.showToast({ title: '登录成功', icon: 'success' })
         // 跳转到首页（tabBar页面）
