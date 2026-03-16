@@ -32,7 +32,7 @@
       <view class="target-grid">
         <view class="target-card" v-for="target in availableTargets" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
-            <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" />
+            <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
           </view>
           <view v-else class="card-img" :class="target.type?.toLowerCase()">
             <text v-if="target.type?.toLowerCase() === 'tea'" class="emoji">🍃</text>
@@ -52,7 +52,7 @@
       <view class="target-grid">
         <view class="target-card" v-for="target in adoptedTargets" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
-            <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" />
+            <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
           </view>
           <view v-else class="card-img" :class="target.type?.toLowerCase()">
             <text v-if="target.type?.toLowerCase() === 'tea'" class="emoji">🍃</text>
@@ -91,6 +91,7 @@
 
 <script>
 import { getPlazaTargets } from '@/api/plaza.js'
+import { SERVER_URL } from '@/config.js'
 
 export default {
   data() {
@@ -197,7 +198,7 @@ export default {
       if (!path) return ''
       // 如果是完整URL直接返回，否则拼接服务器地址
       if (path.startsWith('http')) return path
-      return `http://47.102.138.74${path}`
+      return SERVER_URL + path
     },
 
     goPreview(targetId) {

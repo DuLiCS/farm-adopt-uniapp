@@ -1,3 +1,7 @@
+// 全局配置，所有常量统一在这里管理
+export const SERVER_URL = 'http://47.102.138.74'
+export const DEVICE_ID = 'esp32-farm-01'
+
 export const BASE_URL = ''
 
 export const ADMIN_CONFIG = {
