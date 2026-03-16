@@ -189,7 +189,9 @@ export default {
  this.$nextTick(() => { this.drawPoster() })
  },
  drawPoster() {
- const sysInfo = uni.getSystemInfoSync()
+  const order = this.posterOrder
+  if (!order) return
+  const sysInfo = uni.getSystemInfoSync()
  const W = sysInfo.windowWidth
  const H = Math.round(W * 16 / 9)
  const ctx = uni.createCanvasContext(homePoster, this)
