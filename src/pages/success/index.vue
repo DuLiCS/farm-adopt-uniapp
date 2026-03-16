@@ -177,7 +177,7 @@ export default {
 }
 </style> drawPoster() {
   this.$nextTick(() => {
-   const el = document.getElementById('successPoster')
+   const el = document.querySelector('#successPoster canvas.uni-canvas-canvas') || document.querySelector('#successPoster canvas.uni-canvas-canvas') || document.getElementById('successPoster')
    if (!el) return
    const W = Math.min(window.innerWidth, 630)
    const H = Math.round(W * 16 / 9)
@@ -224,7 +224,7 @@ export default {
   })
  },
  savePoster() {
-  const el = document.getElementById('successPoster')
+  const el = document.querySelector('#successPoster canvas.uni-canvas-canvas') || document.querySelector('#successPoster canvas.uni-canvas-canvas') || document.getElementById('successPoster')
   if (!el) return
   const url = el.toDataURL('image/png')
   const a = document.createElement('a')

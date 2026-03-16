@@ -241,7 +241,7 @@ export default {
   const order = this.posterOrder
   if (!order) return
   this.$nextTick(() => {
-   const el = document.getElementById('homePoster')
+   const el = document.querySelector('#homePoster canvas.uni-canvas-canvas') || document.querySelector('#homePoster canvas.uni-canvas-canvas') || document.getElementById('homePoster')
    if (!el) return
    const W = Math.min(window.innerWidth, 630)
    const H = Math.round(W * 16 / 9)
@@ -288,7 +288,7 @@ export default {
   })
  },
  savePoster() {
-  const el = document.getElementById('homePoster')
+  const el = document.querySelector('#homePoster canvas.uni-canvas-canvas') || document.querySelector('#homePoster canvas.uni-canvas-canvas') || document.getElementById('homePoster')
   if (!el) return
   const url = el.toDataURL('image/png')
   const a = document.createElement('a')
