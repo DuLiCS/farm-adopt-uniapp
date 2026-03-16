@@ -84,7 +84,9 @@ export default {
  },
  drawPoster() {
  const ctx = uni.createCanvasContext('successPoster', this)
- const W = 630, H = 1120
+ const sysInfo = uni.getSystemInfoSync()
+     const W = sysInfo.windowWidth
+     const H = Math.round(W * 1120 / 630)
  const grad = ctx.createLinearGradient(0, 0, 0, H)
  grad.addColorStop(0, '#1a3d16')
  grad.addColorStop(1, '#2d5a27')
@@ -205,7 +207,7 @@ export default {
 .btn-secondary { width: 100%; background: rgba(255,255,255,0.15); color: white; border: 1rpx solid rgba(255,255,255,0.3); border-radius: 999rpx; padding: 28rpx; font-size: 30rpx; }
 .poster-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .poster-wrap { display: flex; flex-direction: column; align-items: center; }
-.poster-canvas { width: 630rpx; height: 1120rpx; border-radius: 16rpx; }
+.poster-canvas { width: 100vw; max-width: 630rpx; height: 85vh; border-radius: 16rpx; }
 .poster-actions { margin-top: 32rpx; display: flex; gap: 24rpx; }
 .poster-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
 .poster-close-btn { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
