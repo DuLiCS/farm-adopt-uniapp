@@ -168,6 +168,10 @@ const goBack = () => {
   uni.navigateBack()
 }
 
+const goVisit = () => {
+  uni.navigateTo({ url: '/pages/camera/index' })
+}
+
 onMounted(() => {
   // 从页面参数获取 order_id
   const pages = getCurrentPages()
