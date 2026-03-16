@@ -390,7 +390,8 @@ export default {
         uni.hideLoading()
         if (res.data && res.data.id) {
           this.showAddressForm = false
-          uni.redirectTo({ url: '/pages/order/detail?id=' + res.data.id })
+          const targetName = encodeURIComponent(this.target && this.target.name || '')
+ uni.redirectTo({ url: '/pages/success/index?order_id=' + res.data.id + '&target_name=' + targetName })
         } else {
           throw new Error((res.data && res.data.detail) || '创建订单失败')
         }
