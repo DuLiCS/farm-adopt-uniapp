@@ -105,7 +105,6 @@
     </view>
 
     <view class="cta-bar" v-if="target">
-    <view class="poster-icon-btn" @click="openPoster">🖼</view>
       <view class="cta-info">
         <view class="cta-label">认养方式</view>
         <view class="cta-plan-name">{{ selectedPlanName || '请选择套餐' }}</view>
@@ -607,6 +606,5 @@ export default {
 .poster-actions { margin-top: 32rpx; display: flex; gap: 24rpx; }
 .poster-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
 .poster-close-btn { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
-.poster-icon-btn { font-size: 40rpx; padding: 8rpx 16rpx; margin-right: 16rpx; }
 
 </style>

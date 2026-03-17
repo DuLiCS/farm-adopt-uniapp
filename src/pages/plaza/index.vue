@@ -11,9 +11,10 @@
 
     <!-- Banner -->
     <view class="hero-banner">
+      <image v-if="bannerImage" :src="bannerImage" mode="aspectFill" class="banner-bg-img" />
       <view class="banner-overlay">
-        <view class="banner-title">一棵茶树，一年的来往</view>
-        <view class="banner-sub">汉中·西乡，海拔800米，春茶将出</view>
+        <view class="banner-title">{{ bannerTitle }}</view>
+        <view class="banner-sub">{{ bannerSub }}</view>
       </view>
     </view>
 
@@ -96,6 +97,12 @@ import { SERVER_URL } from '@/config.js'
 export default {
   data() {
     return {
+      bannerImage: '',
+      bannerTitle: '一棵茶树，一年的来往',
+      bannerSub: '汉中·西乡，海拔800米，春茶将出',
+      bannerImage: '',
+      bannerTitle: '一棵茶树，一年的来往',
+      bannerSub: '汉中·西乡，海拔800米，春茶将出',
       availableTargets: [],
       adoptedTargets: [],
       isLoggedIn: false,
@@ -111,6 +118,8 @@ export default {
   },
 
   onLoad() {
+    this.loadSettings()
+    this.loadSettings()
     this.loadTargets()
     this.loadSensorData()
     this.loadLatestLog()
@@ -194,6 +203,26 @@ export default {
       }
     },
 
+    async loadSettings() {
+      try {
+        const res = await uni.request({ url: SERVER_URL + '/api/settings', method: 'GET' })
+        if (res.data) {
+          if (res.data.banner_image) this.bannerImage = SERVER_URL + res.data.banner_image
+          if (res.data.banner_title) this.bannerTitle = res.data.banner_title
+          if (res.data.banner_sub) this.bannerSub = res.data.banner_sub
+        }
+      } catch (e) {}
+    },
+    async loadSettings() {
+      try {
+        const res = await uni.request({ url: SERVER_URL + '/api/settings', method: 'GET' })
+        if (res.data) {
+          if (res.data.banner_image) this.bannerImage = SERVER_URL + res.data.banner_image
+          if (res.data.banner_title) this.bannerTitle = res.data.banner_title
+          if (res.data.banner_sub) this.bannerSub = res.data.banner_sub
+        }
+      } catch (e) {}
+    },
     getFullImageUrl(path) {
       if (!path) return ''
       // 如果是完整URL直接返回，否则拼接服务器地址
@@ -250,6 +279,8 @@ export default {
 .nav-right text { font-size: 28rpx; cursor: pointer; }
 .user-status { color: rgba(255,255,255,0.8); }
 
+.banner-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+.banner-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 .hero-banner {
   background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
   min-height: 320rpx;
