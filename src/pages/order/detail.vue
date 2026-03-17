@@ -131,13 +131,13 @@ const heroImage = computed(() => {
   if (updates.value.length > 0 && updates.value[0].image_urls?.length > 0) {
     const url = updates.value[0].image_urls[0]
     if (url.startsWith('http')) return url
-    return 'http://47.102.138.74' + url
+    return SERVER_URL + url
   }
   // 其次用认养对象的cover_image
   if (order.value?.target?.cover_image) {
     const cover = order.value.target.cover_image
     if (cover.startsWith('http')) return cover
-    return 'http://47.102.138.74' + cover
+    return SERVER_URL + cover
   }
   // 最后用默认绿色背景（返回空，让 hero-section 显示默认背景）
   return ''
