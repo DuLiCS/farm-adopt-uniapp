@@ -362,7 +362,7 @@ export default {
       this.chartEmpty = false
       try {
         const res = await uni.request({
-          url: '' + SERVER_URL + '/'api/sensor/history?device_id=esp32-farm-01&hours=' + this.chartHours,
+          url: SERVER_URL + '/api/sensor/history?device_id=esp32-farm-01&hours=' + this.chartHours,
           method: 'GET'
         })
         const data = res.data && res.data.data ? res.data.data : []
