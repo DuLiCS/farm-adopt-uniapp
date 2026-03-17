@@ -131,7 +131,7 @@
 <script>
 import { getPlazaTargetDetail } from '@/api/plaza.js'
 import UCharts from '@/static/u-charts.min.js'
-import { PLANS } from '@/config.js'
+import { PLANS, SERVER_URL } from '@/config.js'
 
 export default {
   data() {return {
@@ -336,7 +336,7 @@ export default {
     getFullImageUrl(path) {
       if (!path) return ''
       if (path.startsWith('http')) return path
-      return 'http://47.102.138.74' + path
+      return SERVER_URL + path
     },
 
     async loadDetail() {
@@ -362,7 +362,7 @@ export default {
       this.chartEmpty = false
       try {
         const res = await uni.request({
-          url: 'http://47.102.138.74/api/sensor/history?device_id=esp32-farm-01&hours=' + this.chartHours,
+          url: '' + SERVER_URL + '/'api/sensor/history?device_id=esp32-farm-01&hours=' + this.chartHours,
           method: 'GET'
         })
         const data = res.data && res.data.data ? res.data.data : []
@@ -462,7 +462,7 @@ export default {
     async loadSensorData() {
       try {
         const res = await uni.request({
-          url: 'http://47.102.138.74/api/sensor/latest?device_id=esp32-farm-01',
+          url: '' + SERVER_URL + '/'api/sensor/latest?device_id=esp32-farm-01',
           method: 'GET'
         })
         if (res.data && res.data.temperature !== undefined) {
