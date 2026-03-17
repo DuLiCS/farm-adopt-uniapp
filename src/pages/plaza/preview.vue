@@ -462,7 +462,7 @@ export default {
     async loadSensorData() {
       try {
         const res = await uni.request({
-          url: '' + SERVER_URL + '/'api/sensor/latest?device_id=esp32-farm-01',
+          url: SERVER_URL + '/api/sensor/latest?device_id=esp32-farm-01',
           method: 'GET'
         })
         if (res.data && res.data.temperature !== undefined) {
