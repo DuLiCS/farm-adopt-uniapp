@@ -280,13 +280,13 @@ export default {
 .user-status { color: rgba(255,255,255,0.8); }
 
 .banner-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-.banner-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-.hero-banner {
+.banner-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+.hero-banner { position: relative; overflow: hidden;
   background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
   min-height: 320rpx;
   padding: 80rpx 40rpx 40rpx;
 }
-.banner-overlay {
+.banner-overlay { position: relative; z-index: 1;
   display: flex; flex-direction: column; justify-content: flex-end; height: 100%;
   color: white;
 }
