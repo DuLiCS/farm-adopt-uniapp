@@ -166,7 +166,7 @@ export default {
       if (!this.target || !this.plans.length) return []
       const type = (this.target.type || '').toLowerCase()
       if (type === 'tea') return this.plans.filter(p => p.category === 'tea')
-      if (type === 'hydroponic') return this.plans.filter(p => p.category === 'plant')
+      if (type === 'hydroponic' || type === 'herb' || type === 'plant') return this.plans.filter(p => p.category === 'plant')
       return []
     },
     selectedPlan() {

@@ -83,65 +83,60 @@ export default {
  this.$nextTick(() => { this.drawPoster() })
  },
  drawPoster() {
-  this.$nextTick(() => {
-    const uniEl = document.getElementById('successPoster')
-    if (!uniEl) return
-    const el = uniEl.querySelector('canvas.uni-canvas-canvas') || uniEl
-    const W = Math.min(window.innerWidth, 630)
-    const H = Math.round(W * 16 / 9)
-    el.width = W
-    el.height = H
-    const c = el.getContext('2d')
-    if (!c) return
-    const g = c.createLinearGradient(0, 0, W, H)
-    g.addColorStop(0, '#1a3d16')
-    g.addColorStop(0.6, '#2d5a27')
-    g.addColorStop(1, '#3d6b32')
-    c.fillStyle = g
-    c.fillRect(0, 0, W, H)
-    c.fillStyle = 'rgba(255,255,255,0.04)'
-    c.beginPath(); c.arc(W*0.85, H*0.1, W*0.5, 0, Math.PI*2); c.fill()
-    c.fillStyle = 'rgba(255,255,255,0.03)'
-    c.beginPath(); c.arc(W*0.1, H*0.9, W*0.4, 0, Math.PI*2); c.fill()
-    c.textAlign = 'center'
-    c.textBaseline = 'middle'
-    c.font = Math.round(W*0.032) + 'px sans-serif'
-    c.fillStyle = 'rgba(255,255,255,0.4)'
-    c.fillText('— 山南记 · 认养证书 —', W/2, H*0.12)
-    c.font = Math.round(W*0.13) + 'px sans-serif'
-    c.fillStyle = 'rgba(255,255,255,0.85)'
-    c.fillText('🍃', W/2, H*0.3)
-    c.font = 'bold ' + Math.round(W*0.07) + 'px sans-serif'
-    c.fillStyle = '#fff'
-    c.fillText(this.targetName || '我的茶树', W/2, H*0.46)
-    c.font = Math.round(W*0.037) + 'px sans-serif'
-    c.fillStyle = 'rgba(255,255,255,0.55)'
-    c.fillText('我在山南记守候着这棵树', W/2, H*0.55)
-    c.fillStyle = 'rgba(255,255,255,0.15)'
-    c.fillRect(W*0.25, H*0.61, W*0.5, 1)
-    c.font = Math.round(W*0.033) + 'px sans-serif'
-    c.fillStyle = 'rgba(255,255,255,0.5)'
-    c.fillText('秦岭南麓 · 陕西汉中西乡', W/2, H*0.67)
-    c.fillText('守候开始于 ' + this.today, W/2, H*0.74)
-    c.fillStyle = 'rgba(255,255,255,0.1)'
-    c.fillRect(W*0.1, H*0.82, W*0.8, 1)
-    c.font = 'bold ' + Math.round(W*0.05) + 'px sans-serif'
-    c.fillStyle = 'rgba(255,255,255,0.85)'
-    c.fillText('山南记', W/2, H*0.88)
-    c.font = Math.round(W*0.034) + 'px sans-serif'
-    c.fillStyle = 'rgba(255,255,255,0.4)'
-    c.fillText('shannanji.com', W/2, H*0.94)
-  })
+  const W = 630
+  const H = 1120
+  const ctx = uni.createCanvasContext('successPoster', this)
+  const grad = ctx.createLinearGradient(0, 0, W, H)
+  grad.addColorStop(0, '#1a3d16')
+  grad.addColorStop(0.6, '#2d5a27')
+  grad.addColorStop(1, '#3d6b32')
+  ctx.setFillStyle(grad)
+  ctx.fillRect(0, 0, W, H)
+  ctx.setFillStyle('rgba(255,255,255,0.04)')
+  ctx.beginPath(); ctx.arc(W * 0.85, H * 0.1, W * 0.5, 0, Math.PI * 2); ctx.fill()
+  ctx.setFillStyle('rgba(255,255,255,0.03)')
+  ctx.beginPath(); ctx.arc(W * 0.1, H * 0.9, W * 0.4, 0, Math.PI * 2); ctx.fill()
+  ctx.setTextAlign('center')
+  ctx.setFontSize(20)
+  ctx.setFillStyle('rgba(255,255,255,0.4)')
+  ctx.fillText('— 山南记 · 认养证书 —', W / 2, H * 0.12)
+  ctx.setFontSize(82)
+  ctx.setFillStyle('rgba(255,255,255,0.85)')
+  ctx.fillText('🍃', W / 2, H * 0.3)
+  ctx.setFontSize(44)
+  ctx.setFillStyle('#ffffff')
+  ctx.fillText(this.targetName || '我的茶树', W / 2, H * 0.46)
+  ctx.setFontSize(24)
+  ctx.setFillStyle('rgba(255,255,255,0.55)')
+  ctx.fillText('我在山南记守候着这棵树', W / 2, H * 0.55)
+  ctx.setFillStyle('rgba(255,255,255,0.15)')
+  ctx.fillRect(W * 0.25, H * 0.61, W * 0.5, 1)
+  ctx.setFontSize(21)
+  ctx.setFillStyle('rgba(255,255,255,0.5)')
+  ctx.fillText('秦岭南麓 · 陕西汉中西乡', W / 2, H * 0.67)
+  ctx.fillText('守候开始于 ' + this.today, W / 2, H * 0.74)
+  ctx.setFillStyle('rgba(255,255,255,0.1)')
+  ctx.fillRect(W * 0.1, H * 0.82, W * 0.8, 1)
+  ctx.setFontSize(32)
+  ctx.setFillStyle('rgba(255,255,255,0.85)')
+  ctx.fillText('山南记', W / 2, H * 0.88)
+  ctx.setFontSize(21)
+  ctx.setFillStyle('rgba(255,255,255,0.4)')
+  ctx.fillText('shannanji.com', W / 2, H * 0.94)
+  ctx.draw()
  },
  savePoster() {
-  const uniEl = document.getElementById('successPoster')
-  if (!uniEl) return
-  const el = uniEl.querySelector('canvas.uni-canvas-canvas') || uniEl
-  const url = el.toDataURL('image/png')
-  const a = document.createElement('a')
-  a.download = '山南记认养证书.png'
-  a.href = url
-  a.click()
+  uni.canvasToTempFilePath({
+    canvasId: 'successPoster',
+    success: (res) => {
+      uni.saveImageToPhotosAlbum({
+        filePath: res.tempFilePath,
+        success: () => uni.showToast({ title: '已保存到相册', icon: 'success' }),
+        fail: () => uni.showToast({ title: '请长按图片保存', icon: 'none' })
+      })
+    },
+    fail: () => uni.showToast({ title: '生成失败', icon: 'none' })
+  }, this)
  },
  }
 }

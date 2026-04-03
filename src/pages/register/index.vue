@@ -70,6 +70,8 @@ export default {
       uni.showLoading({ title: '注册中...', mask: true })
       try {
         const res = await apiRegister(this.phone, this.password, this.nickname.trim() || undefined)
+        uni.setStorageSync('token', res.access_token)
+        uni.setStorageSync('phone', this.phone)
         uni.hideLoading()
         uni.showToast({ title: '注册成功', icon: 'success' })
         this.loading = false
