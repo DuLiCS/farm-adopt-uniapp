@@ -1,5 +1,12 @@
 <template>
   <view class="container">
+    <!-- 类型筛选 -->
+    <view class="filter-bar">
+      <view v-for="f in typeFilters" :key="f.value"
+        class="filter-tab" :class="{ active: activeType === f.value }"
+        @click="activeType = f.value">{{ f.label }}</view>
+    </view>
+
     <view v-if="loading && logs.length === 0" class="loading-state">加载中...</view>
 
     <view v-else-if="logs.length === 0" class="empty-state">
@@ -9,7 +16,7 @@
     </view>
 
     <view v-else>
-      <view class="log-item" v-for="log in logs" :key="log.id">
+      <view class="log-item" v-for="log in filteredLogs" :key="log.id">
         <view class="log-left">
           <view class="log-dot"></view>
           <view class="log-line" v-if="logs.indexOf(log) < logs.length - 1"></view>
@@ -24,6 +31,9 @@
         </view>
       </view>
 
+      <view v-if="!loading && filteredLogs.length === 0 && logs.length > 0" class="filter-empty">
+        该分类暂无日志
+      </view>
       <view class="load-more" v-if="hasMore" @click="loadMore">
         <text v-if="loading">加载中...</text>
         <text v-else>加载更多</text>
@@ -43,7 +53,25 @@ export default {
       loading: false,
       page: 1,
       pageSize: 20,
-      hasMore: true
+      hasMore: true,
+      activeType: 'all',
+      typeFilters: [
+        { label: '全部', value: 'all' },
+        { label: '节气', value: 'solar_term' },
+        { label: '收获', value: 'harvest' },
+        { label: '配送', value: 'delivery' },
+        { label: '日常', value: 'daily' },
+      ]
+    }
+  },
+
+  computed: {
+    filteredLogs() {
+      if (this.activeType === 'all') return this.logs
+      return this.logs.filter(log => {
+        const t = (log.log_type || '').toLowerCase()
+        return t === this.activeType
+      })
     }
   },
 
@@ -143,4 +171,8 @@ export default {
   text-align: center; padding: 40rpx 0; font-size: 28rpx; color: #2d5a27;
 }
 .no-more { text-align: center; padding: 40rpx 0; font-size: 24rpx; color: #ccc; }
+.filter-bar { display: flex; gap: 12rpx; margin-bottom: 32rpx; flex-wrap: wrap; }
+.filter-tab { font-size: 24rpx; padding: 10rpx 28rpx; border-radius: 999rpx; background: #ebebeb; color: #666; }
+.filter-tab.active { background: #2d5a27; color: white; }
+.filter-empty { text-align: center; padding: 60rpx 0; font-size: 26rpx; color: #bbb; }
 </style>

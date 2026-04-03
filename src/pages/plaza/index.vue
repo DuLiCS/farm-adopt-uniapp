@@ -45,11 +45,32 @@
       </view>
     </view>
 
+    <!-- 类型筛选 -->
+    <view class="filter-bar">
+      <view v-for="f in typeFilters" :key="f.value"
+        class="filter-tab" :class="{ active: activeFilter === f.value }"
+        @click="activeFilter = f.value">{{ f.label }}</view>
+    </view>
+
+    <!-- 骨架屏 -->
+    <view v-if="loading" class="section">
+      <view class="section-title skel-line" style="width:120rpx;height:32rpx;margin-bottom:24rpx;"></view>
+      <view class="target-grid">
+        <view class="skeleton-card" v-for="i in 4" :key="i">
+          <view class="skel skel-img"></view>
+          <view style="padding:16rpx;">
+            <view class="skel skel-name"></view>
+            <view class="skel skel-loc"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 山南对象列表 -->
-    <view class="section">
+    <view v-if="!loading" class="section">
       <view class="section-title">还没有主人</view>
       <view class="target-grid">
-        <view class="target-card" v-for="target in availableTargets" :key="target.id" @click="goPreview(target.id)">
+        <view class="target-card" v-for="target in filteredAvailable" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
             <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
           </view>
@@ -67,7 +88,7 @@
       </view>
     </view>
 
-    <view class="section" v-if="adoptedTargets.length > 0">
+    <view class="section" v-if="!loading && adoptedTargets.length > 0">
       <view class="section-title">已有人在守候</view>
       <view class="target-grid">
         <view class="target-card" v-for="target in adoptedTargets" :key="target.id" @click="goPreview(target.id)">
@@ -182,6 +203,7 @@ const JIEQI_COPY = {
 export default {
   data() {
     return {
+      loading: false,
       bannerImage: '',
       bannerTitle: '一棵茶树，一年的来往',
       bannerSub: '汉中·西乡，海拔800米，春茶将出',
@@ -189,7 +211,13 @@ export default {
       adoptedTargets: [],
       isLoggedIn: false,
       sensorData: null,
-      latestLog: null
+      latestLog: null,
+      activeFilter: 'all',
+      typeFilters: [
+        { label: '全部', value: 'all' },
+        { label: '🍃 茶树', value: 'tea' },
+        { label: '🌿 植物', value: 'plant' },
+      ]
     }
   },
 
@@ -205,7 +233,23 @@ export default {
     this.loadLatestLog()
   },
 
+  onPullDownRefresh() {
+    Promise.all([
+      this.loadTargets(),
+      this.loadSensorData(),
+      this.loadLatestLog()
+    ]).finally(() => uni.stopPullDownRefresh())
+  },
+
   computed: {
+    filteredAvailable() {
+      if (this.activeFilter === 'all') return this.availableTargets
+      return this.availableTargets.filter(t => {
+        const type = (t.type || '').toLowerCase()
+        if (this.activeFilter === 'tea') return type === 'tea'
+        return type !== 'tea'
+      })
+    },
     jieqiInfo() {
       const now = new Date()
       const pad = n => String(n).padStart(2, '0')
@@ -279,6 +323,7 @@ export default {
     },
 
     async loadTargets() {
+      this.loading = true
       try {
         const targets = await getPlazaTargets()
         if (!Array.isArray(targets)) {
@@ -294,6 +339,8 @@ export default {
         uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
         this.availableTargets = []
         this.adoptedTargets = []
+      } finally {
+        this.loading = false
       }
     },
 
@@ -462,4 +509,18 @@ export default {
 .log-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 12rpx; }
 .log-desc { font-size: 26rpx; color: #666; line-height: 1.7; margin-bottom: 20rpx; }
 .log-more { font-size: 24rpx; color: #2d5a27; text-align: right; }
+
+/* 筛选栏 */
+.filter-bar { display: flex; gap: 16rpx; padding: 24rpx 32rpx 0; }
+.filter-tab { font-size: 24rpx; padding: 10rpx 24rpx; border-radius: 999rpx; background: #f0f0eb; color: #666; transition: all 0.15s; }
+.filter-tab.active { background: #2d5a27; color: white; }
+
+/* 骨架屏 */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skel { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8rpx; }
+.skeleton-card { background: white; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.skel-img { width: 100%; height: 160rpx; border-radius: 0; }
+.skel-name { height: 28rpx; margin-bottom: 12rpx; }
+.skel-loc { height: 22rpx; width: 60%; }
+.skel-line { display: block; }
 </style>

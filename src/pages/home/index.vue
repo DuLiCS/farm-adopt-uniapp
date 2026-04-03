@@ -12,7 +12,20 @@
  </view>
  </view>
 
- <view v-if="loading" class="empty-state">加载中...</view>
+ <view v-if="loading" class="order-list">
+ <view class="jieqi-bar" style="background:#f0f0f0;">
+   <view class="skel" style="width:180rpx;height:26rpx;border-radius:6rpx;"></view>
+ </view>
+ <view class="skeleton-order" v-for="i in 2" :key="i">
+   <view class="skel skel-cover-rect"></view>
+   <view style="flex:1;padding:24rpx;display:flex;flex-direction:column;gap:16rpx;">
+     <view class="skel" style="height:30rpx;width:60%;"></view>
+     <view class="skel" style="height:22rpx;width:40%;"></view>
+     <view class="skel" style="height:16rpx;width:80%;border-radius:999rpx;"></view>
+     <view class="skel" style="height:20rpx;width:50%;"></view>
+   </view>
+ </view>
+ </view>
 
  <view v-else-if="orders.length === 0" class="empty-state">
  <view class="empty-icon">🍃</view>
@@ -148,6 +161,10 @@ export default {
  const token = uni.getStorageSync('token')
  if (!token) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
  this.loadOrders()
+ },
+
+ onPullDownRefresh() {
+ this.loadOrders().finally(() => uni.stopPullDownRefresh())
  },
 
  methods: {
@@ -382,4 +399,8 @@ export default {
 .poster-actions { margin-top: 32rpx; display: flex; gap: 24rpx; }
 .poster-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
 .poster-close-btn { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skel { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.skeleton-order { background: white; border-radius: 20rpx; overflow: hidden; margin-bottom: 24rpx; display: flex; height: 180rpx; }
+.skel-cover-rect { width: 180rpx; height: 180rpx; flex-shrink: 0; }
 </style>

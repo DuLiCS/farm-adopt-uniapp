@@ -5,7 +5,10 @@
       "style": {
         "navigationBarTitleText": "山南广场",
         "navigationBarBackgroundColor": "#2d5a27",
-        "navigationBarTextStyle": "white"
+        "navigationBarTextStyle": "white",
+        "enablePullDownRefresh": true,
+        "backgroundColor": "#f5f5f0",
+        "backgroundTextStyle": "dark"
       }
     },
     {
@@ -17,7 +20,10 @@
     {
       "path": "pages/home/index",
       "style": {
-        "navigationBarTitleText": "我的山南"
+        "navigationBarTitleText": "我的山南",
+        "enablePullDownRefresh": true,
+        "backgroundColor": "#f5f5f0",
+        "backgroundTextStyle": "dark"
       }
     },
     {
