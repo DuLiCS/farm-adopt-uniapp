@@ -12,8 +12,17 @@
     </view>
 
     <view class="status-card" v-if="target">
-      <view class="target-location">{{ target.location_desc }}</view>
-      <view v-if="target.description" class="desc-text">{{ target.description }}</view>
+      <view class="target-meta-row">
+        <view class="target-code-badge" v-if="target.code"># {{ target.code }}</view>
+        <view class="target-type-badge">{{ targetTypeLabel }}</view>
+      </view>
+      <view class="target-location">📍 {{ target.location_desc }}</view>
+      <view v-if="target.description" class="desc-wrap">
+        <view class="desc-text" :class="{ collapsed: !descExpanded }">{{ target.description }}</view>
+        <view v-if="target.description.length > 60" class="desc-toggle" @click="descExpanded = !descExpanded">
+          {{ descExpanded ? '收起 ∧' : '展开查看完整档案 ∨' }}
+        </view>
+      </view>
     </view>
 
     <view class="sensor-card">
@@ -139,6 +148,7 @@ export default {
       targetId: null,
       selectedPlanId: null,
       plans: [],
+      descExpanded: false,
       loading: false,
       showAddressForm: false,
       showPoster: false,
@@ -161,6 +171,10 @@ export default {
     },
     targetTypeEmoji() {
       return this.targetType === 'tea' ? '🍃' : '🌿'
+    },
+    targetTypeLabel() {
+      const map = { tea: '茶树认养', herb: '植物认养', hydroponic: '植物认养', plant: '植物认养' }
+      return map[this.targetType] || '认养对象'
     },
     availablePlans() {
       if (!this.target || !this.plans.length) return []
@@ -550,8 +564,14 @@ export default {
 .hero-title { font-size: 22px; font-weight: bold; margin-top: 8rpx; }
 .hero-date { font-size: 14px; opacity: 0.8; margin-bottom: 8rpx; }
 .status-card { margin: -40rpx 30rpx 0; background: white; border-radius: 24rpx; padding: 40rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.08); }
+.target-meta-row { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
+.target-code-badge { font-size: 22rpx; color: #999; background: #f5f5f0; padding: 4rpx 16rpx; border-radius: 999rpx; }
+.target-type-badge { font-size: 22rpx; color: #2d5a27; background: #e8f5e9; padding: 4rpx 16rpx; border-radius: 999rpx; }
 .target-location { font-size: 28rpx; color: #666; }
-.desc-text { margin-top: 12rpx; font-size: 26rpx; color: #888; line-height: 1.6; }
+.desc-wrap { margin-top: 16rpx; }
+.desc-text { font-size: 26rpx; color: #888; line-height: 1.8; }
+.desc-text.collapsed { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.desc-toggle { font-size: 24rpx; color: #2d5a27; margin-top: 10rpx; }
 .plan-section { margin: 40rpx 30rpx; }
 .section-title { font-size: 17px; font-weight: 600; color: #2d5a27; margin-bottom: 24rpx; }
 .plan-list { display: flex; flex-direction: column; gap: 24rpx; }

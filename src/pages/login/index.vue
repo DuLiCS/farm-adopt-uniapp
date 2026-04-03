@@ -15,10 +15,10 @@
       <view class="form-title">欢迎回来</view>
 
       <view class="input-wrap">
-        <input class="input-field" v-model="phone" placeholder="手机号" type="number" maxlength="11" />
+        <input class="input-field" v-model="phone" placeholder="手机号" placeholder-style="color:#aaa" type="number" maxlength="11" />
       </view>
       <view class="input-wrap">
-        <input class="input-field" v-model="password" placeholder="密码" type="password" />
+        <input class="input-field" v-model="password" placeholder="密码" placeholder-style="color:#aaa" type="password" />
       </view>
 
       <view v-if="error" class="error-text">{{ error }}</view>
@@ -111,12 +111,11 @@ export default {
 .input-wrap { margin-bottom: 24rpx; }
 .input-field {
   width: 100%; box-sizing: border-box;
-  background: rgba(255,255,255,0.15);
-  border: 1rpx solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.92);
+  border: none;
   border-radius: 16rpx; padding: 28rpx 32rpx;
-  font-size: 30rpx; color: white; height: 96rpx;
+  font-size: 30rpx; color: #1a3d16; height: 96rpx;
 }
-.input-field::placeholder { color: rgba(255,255,255,0.45); }
 
 .error-text { font-size: 24rpx; color: #ffb3b3; margin-bottom: 16rpx; }
 

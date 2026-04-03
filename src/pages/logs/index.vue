@@ -59,8 +59,12 @@ export default {
           url: `${SERVER_URL}/api/logs?page=${this.page}&page_size=${this.pageSize}&status=published`,
           method: 'GET'
         })
-        const data = res.data
-        const items = data.items || data.logs || (Array.isArray(data) ? data : [])
+        const raw = res.data
+        let items = []
+        if (Array.isArray(raw)) items = raw
+        else if (Array.isArray(raw?.data)) items = raw.data
+        else if (Array.isArray(raw?.data?.items)) items = raw.data.items
+        else if (Array.isArray(raw?.items)) items = raw.items
         if (append) {
           this.logs = this.logs.concat(items)
         } else {

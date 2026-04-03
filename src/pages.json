@@ -89,15 +89,21 @@
     "list": [
       {
         "pagePath": "pages/plaza/index",
-        "text": "山南广场"
+        "text": "山南广场",
+        "iconPath": "static/tabbar/plaza.svg",
+        "selectedIconPath": "static/tabbar/plaza-active.svg"
       },
       {
         "pagePath": "pages/home/index",
-        "text": "我的山南"
+        "text": "我的山南",
+        "iconPath": "static/tabbar/home.svg",
+        "selectedIconPath": "static/tabbar/home-active.svg"
       },
       {
         "pagePath": "pages/shop/index",
-        "text": "山南套餐"
+        "text": "山南套餐",
+        "iconPath": "static/tabbar/shop.svg",
+        "selectedIconPath": "static/tabbar/shop-active.svg"
       }
     ]
   }

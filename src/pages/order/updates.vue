@@ -88,9 +88,6 @@ export default {
       return val.replace('T', ' ').substring(0, 19)
     }
   },
-  mounted() {
-    console.log('订单更新页面已加载')
-  }
 }
 </script>
 

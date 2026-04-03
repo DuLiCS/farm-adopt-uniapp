@@ -22,6 +22,11 @@
  </view>
 
  <view v-else class="order-list">
+ <view class="jieqi-bar" v-if="nextJieqi">
+   <text class="jieqi-bar-icon">🌿</text>
+   <text v-if="nextJieqi.isToday" class="jieqi-bar-text">今日 <text class="jieqi-bar-name">{{ nextJieqi.name }}</text></text>
+   <text v-else class="jieqi-bar-text">距 <text class="jieqi-bar-name">{{ nextJieqi.name }}</text> 还有 <text class="jieqi-bar-days">{{ nextJieqi.days }}</text> 天</text>
+ </view>
  <view class="section-title">我的守候</view>
  <view class="order-card" v-for="(order, idx) in orders" :key="order.id" @click="goDetail(order.id)">
  <view class="card-cover">
@@ -79,6 +84,27 @@
 import { getMyOrders, getOrderUpdates } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
 
+const JIEQI = {
+  '2026-01-05':'小寒','2026-01-20':'大寒','2026-02-04':'立春','2026-02-19':'雨水',
+  '2026-03-06':'惊蛰','2026-03-20':'春分','2026-04-05':'清明','2026-04-20':'谷雨',
+  '2026-05-06':'立夏','2026-05-21':'小满','2026-06-06':'芒种','2026-06-21':'夏至',
+  '2026-07-07':'小暑','2026-07-23':'大暑','2026-08-07':'立秋','2026-08-23':'处暑',
+  '2026-09-08':'白露','2026-09-23':'秋分','2026-10-08':'寒露','2026-10-23':'霜降',
+  '2026-11-07':'立冬','2026-11-22':'小雪','2026-12-07':'大雪','2026-12-22':'冬至',
+  '2027-01-05':'小寒','2027-01-20':'大寒','2027-02-03':'立春','2027-02-18':'雨水',
+  '2027-03-06':'惊蛰','2027-03-21':'春分','2027-04-05':'清明','2027-04-20':'谷雨',
+  '2027-05-06':'立夏','2027-05-21':'小满','2027-06-06':'芒种','2027-06-21':'夏至',
+  '2027-07-07':'小暑','2027-07-23':'大暑','2027-08-07':'立秋','2027-08-23':'处暑',
+  '2027-09-08':'白露','2027-09-23':'秋分','2027-10-08':'寒露','2027-10-23':'霜降',
+  '2027-11-07':'立冬','2027-11-22':'小雪','2027-12-07':'大雪','2027-12-22':'冬至',
+  '2028-01-06':'小寒','2028-01-21':'大寒','2028-02-04':'立春','2028-02-19':'雨水',
+  '2028-03-05':'惊蛰','2028-03-20':'春分','2028-04-04':'清明','2028-04-19':'谷雨',
+  '2028-05-05':'立夏','2028-05-20':'小满','2028-06-05':'芒种','2028-06-21':'夏至',
+  '2028-07-06':'小暑','2028-07-22':'大暑','2028-08-07':'立秋','2028-08-22':'处暑',
+  '2028-09-07':'白露','2028-09-22':'秋分','2028-10-07':'寒露','2028-10-22':'霜降',
+  '2028-11-07':'立冬','2028-11-21':'小雪','2028-12-06':'大雪','2028-12-21':'冬至',
+}
+
 export default {
  data() {
  return {
@@ -95,6 +121,15 @@ export default {
  maskedPhone() {
  if (!this.phone) return '未登录'
  return this.phone.substring(0, 3) + '****' + this.phone.substring(7)
+ },
+ nextJieqi() {
+ const now = new Date()
+ const pad = n => String(n).padStart(2, '0')
+ const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`
+ const next = Object.keys(JIEQI).sort().find(d => d >= todayStr)
+ if (!next) return null
+ const days = Math.ceil((new Date(next) - now) / 86400000)
+ return { name: JIEQI[next], days, isToday: days === 0 }
  }
  },
 
@@ -282,6 +317,15 @@ export default {
 .empty-sub { font-size: 28rpx; color: #999; margin-bottom: 48rpx; }
 .btn-primary { background: #2d5a27; color: white; border: none; border-radius: 999rpx; padding: 24rpx 80rpx; font-size: 30rpx; }
 .order-list { padding: 32rpx; }
+.jieqi-bar {
+ display: flex; align-items: center; gap: 12rpx;
+ background: #f0f9f0; border-radius: 12rpx;
+ padding: 20rpx 24rpx; margin-bottom: 28rpx;
+}
+.jieqi-bar-icon { font-size: 28rpx; }
+.jieqi-bar-text { font-size: 26rpx; color: #666; }
+.jieqi-bar-name { color: #2d5a27; font-weight: bold; }
+.jieqi-bar-days { color: #2d5a27; font-weight: bold; font-size: 30rpx; }
 .section-title { font-size: 30rpx; font-weight: bold; color: #2d5a27; margin-bottom: 24rpx; }
 .order-card { background: white; border-radius: 20rpx; overflow: hidden; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); display: flex; }
 .card-cover { width: 180rpx; flex-shrink: 0; position: relative; }
