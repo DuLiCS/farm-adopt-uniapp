@@ -1,34 +1,38 @@
 <template>
   <view class="container">
-    <view class="card" style="margin-top: 120rpx;">
-      <view class="logo">
-        <text style="font-size: 64rpx; color: #2d5a27;">🌱</text>
-        <view style="font-size: 36rpx; font-weight: bold; margin-top: 16rpx;">注册账号</view>
-        <view style="font-size: 28rpx; color: #999; margin-top: 8rpx;">创建您的山南记账户</view>
+    <view class="bg-deco">
+      <view class="deco-circle deco-1"></view>
+      <view class="deco-circle deco-2"></view>
+    </view>
+
+    <view class="brand">
+      <text class="brand-icon">🌿</text>
+      <view class="brand-name">山南记</view>
+      <view class="brand-sub">开始守候你的一棵树</view>
+    </view>
+
+    <view class="form-card">
+      <view class="form-title">创建账号</view>
+
+      <view class="input-wrap">
+        <input class="input-field" v-model="phone" placeholder="手机号" type="number" maxlength="11" />
+      </view>
+      <view class="input-wrap">
+        <input class="input-field" v-model="nickname" placeholder="昵称（可选）" />
+      </view>
+      <view class="input-wrap">
+        <input class="input-field" v-model="password" placeholder="密码（至少6位）" type="password" />
       </view>
 
-      <view style="margin-top: 48rpx;">
-        <view class="field-label">手机号 *</view>
-        <input class="input-field" v-model="phone" placeholder="请输入手机号" type="number" maxlength="11" style="margin-top: 8rpx;" />
-        
-        <view class="field-label" style="margin-top: 24rpx;">昵称（可选）</view>
-        <input class="input-field" v-model="nickname" placeholder="怎么称呼您" style="margin-top: 8rpx;" />
-        
-        <view class="field-label" style="margin-top: 24rpx;">密码 *</view>
-        <input class="input-field" v-model="password" placeholder="设置登录密码" type="password" style="margin-top: 8rpx;" />
-      </view>
+      <view v-if="error" class="error-text">{{ error }}</view>
 
-      <view v-if="error" style="color: #c0392b; font-size: 28rpx; margin-bottom: 16rpx; margin-top: 24rpx;">
-        {{ error }}
-      </view>
-
-      <button class="button-primary" style="width: 100%; margin-top: 32rpx; height: 56px; background-color: #2d5a27; color: #fff; border: none; border-radius: 999px; font-size: 18px;" :disabled="loading" @click="handleRegister">
+      <button class="btn-submit" :disabled="loading" @click="handleRegister">
         {{ loading ? '注册中...' : '注册' }}
       </button>
 
-      <view style="text-align: center; margin-top: 32rpx;">
-        <text class="text-muted">已有账号？</text>
-        <text class="text-primary" style="margin-left: 12rpx; cursor: pointer; color: #2d5a27;" @click="goLogin">去登录</text>
+      <view class="switch-row">
+        <text class="switch-muted">已有账号？</text>
+        <text class="switch-link" @click="goLogin">去登录</text>
       </view>
     </view>
   </view>
@@ -86,18 +90,56 @@ export default {
       }
     }
   },
-  mounted() {
-    console.log('注册页面已加载')
-  }
 }
 </script>
 
 <style scoped>
-.container { padding: 32px; min-height: 100vh; box-sizing: border-box; }
-.card { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.button-primary { background-color: #2d5a27; color: #fff; border: none; border-radius: 999px; padding: 24px 48px; font-size: 32rpx; width: 100%; height: 56px; display: flex; align-items: center; justify-content: center; }
-.input-field { border: 1px solid #eee; border-radius: 12px; padding: 24px; font-size: 28rpx; background: #fff; width: 100%; box-sizing: border-box; height: 56px; }
-.field-label { font-size: 28rpx; color: #333; font-weight: 500; }
-.text-primary { color: #2d5a27; font-weight: 500; }
-.text-muted { color: #999; }
+.container {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #1a3d16 0%, #2d5a27 50%, #4a7c3f 100%);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60rpx 48rpx;
+  box-sizing: border-box; position: relative; overflow: hidden;
+}
+.bg-deco { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.deco-circle { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.05); }
+.deco-1 { width: 600rpx; height: 600rpx; top: -200rpx; right: -200rpx; }
+.deco-2 { width: 400rpx; height: 400rpx; bottom: -120rpx; left: -120rpx; }
+
+.brand { text-align: center; margin-bottom: 56rpx; position: relative; z-index: 1; }
+.brand-icon { font-size: 80rpx; }
+.brand-name { font-size: 52rpx; font-weight: bold; color: white; margin-top: 16rpx; }
+.brand-sub { font-size: 26rpx; color: rgba(255,255,255,0.6); margin-top: 12rpx; }
+
+.form-card {
+  width: 100%; background: rgba(255,255,255,0.12);
+  border: 1rpx solid rgba(255,255,255,0.2);
+  border-radius: 32rpx; padding: 48rpx 40rpx;
+  backdrop-filter: blur(12px); position: relative; z-index: 1;
+}
+.form-title { font-size: 36rpx; font-weight: bold; color: white; margin-bottom: 40rpx; }
+
+.input-wrap { margin-bottom: 24rpx; }
+.input-field {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.15);
+  border: 1rpx solid rgba(255,255,255,0.25);
+  border-radius: 16rpx; padding: 28rpx 32rpx;
+  font-size: 30rpx; color: white; height: 96rpx;
+}
+.input-field::placeholder { color: rgba(255,255,255,0.45); }
+
+.error-text { font-size: 24rpx; color: #ffb3b3; margin-bottom: 16rpx; }
+
+.btn-submit {
+  width: 100%; background: white; color: #2d5a27;
+  border: none; border-radius: 999rpx;
+  padding: 0; height: 96rpx; font-size: 32rpx; font-weight: bold;
+  margin-top: 16rpx;
+}
+.btn-submit[disabled] { background: rgba(255,255,255,0.4); color: rgba(255,255,255,0.6); }
+
+.switch-row { text-align: center; margin-top: 36rpx; }
+.switch-muted { font-size: 26rpx; color: rgba(255,255,255,0.5); }
+.switch-link { font-size: 26rpx; color: white; font-weight: 500; margin-left: 8rpx; }
 </style>

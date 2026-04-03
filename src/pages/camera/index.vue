@@ -190,6 +190,12 @@ export default {
     this.loadPhotos()
   },
 
+  onPullDownRefresh() {
+    this.loadPhotos().finally(() => {
+      uni.stopPullDownRefresh()
+    })
+  },
+
   methods: {
     async loadPhotos() {
       this.loading = true
@@ -203,6 +209,7 @@ export default {
       } finally {
         this.loading = false
       }
+      return Promise.resolve()
     },
     toggleDay(date) {
       this.expandedDays = { ...this.expandedDays, [date]: !this.expandedDays[date] }

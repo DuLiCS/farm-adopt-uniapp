@@ -71,7 +71,10 @@
       "style": {
         "navigationBarTitleText": "探望我的树",
         "navigationBarBackgroundColor": "#1a3d16",
-        "navigationBarTextStyle": "white"
+        "navigationBarTextStyle": "white",
+        "enablePullDownRefresh": true,
+        "backgroundColor": "#1a3d16",
+        "backgroundTextStyle": "light"
       }
     }
   ],
