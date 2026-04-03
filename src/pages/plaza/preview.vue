@@ -62,8 +62,8 @@
       <view class="plan-list">
         <view class="plan-card" :class="{ selected: selectedPlanId === plan.id }" v-for="plan in availablePlans" :key="plan.id" @click="selectPlan(plan)">
           <view class="plan-name">{{ plan.name }}</view>
-          <view class="plan-desc">{{ plan.desc }}</view>
-          <view class="plan-price">¥{{ plan.price }}</view>
+          <view class="plan-desc">{{ plan.description }}</view>
+          <view class="plan-price">¥{{ (plan.price / 100).toFixed(0) }}</view>
           <view v-if="selectedPlanId === plan.id" class="plan-check">✓ 已选择</view>
         </view>
       </view>
@@ -108,7 +108,7 @@
       <view class="cta-info">
         <view class="cta-label">认养方式</view>
         <view class="cta-plan-name">{{ selectedPlanName || '请选择套餐' }}</view>
-        <view class="cta-price" v-if="selectedPlanPrice">¥{{ selectedPlanPrice }}<text style="font-size: 24rpx; color: #999;">/认养</text></view>
+        <view class="cta-price" v-if="selectedPlanPriceDisplay">¥{{ selectedPlanPriceDisplay }}<text style="font-size: 24rpx; color: #999;">/认养</text></view>
       </view>
       <button :disabled="!canSubmit" :class="!canSubmit ? 'cta-btn-disabled' : 'cta-btn'" @click="submitOrder">{{ submitBtnText }}</button>
     </view>
@@ -130,7 +130,7 @@
 <script>
 import { getPlazaTargetDetail } from '@/api/plaza.js'
 import UCharts from '@/static/u-charts.min.js'
-import { PLANS, SERVER_URL } from '@/config.js'
+import { SERVER_URL } from '@/config.js'
 
 export default {
   data() {return {
@@ -138,6 +138,7 @@ export default {
       updates: [],
       targetId: null,
       selectedPlanId: null,
+      plans: [],
       loading: false,
       showAddressForm: false,
       showPoster: false,
@@ -162,18 +163,19 @@ export default {
       return this.targetType === 'tea' ? '🍃' : '🌿'
     },
     availablePlans() {
-      if (!this.target) return []
+      if (!this.target || !this.plans.length) return []
       const type = (this.target.type || '').toLowerCase()
-      if (type === 'tea') return PLANS.filter(p => p.type === 'tea')
-      if (type === 'hydroponic') return PLANS.filter(p => p.type === 'plant')
+      if (type === 'tea') return this.plans.filter(p => p.category === 'tea')
+      if (type === 'hydroponic') return this.plans.filter(p => p.category === 'plant')
       return []
     },
     selectedPlan() {
       if (!this.selectedPlanId) return null
-      return this.availablePlans.find(p => p.id === this.selectedPlanId) || null
+      return this.availablePlans.find(p => p.plan_key === this.selectedPlanId) || null
     },
     selectedPlanName() { return this.selectedPlan ? this.selectedPlan.name : '' },
     selectedPlanPrice() { return this.selectedPlan ? this.selectedPlan.price : null },
+    selectedPlanPriceDisplay() { return this.selectedPlanPrice ? (this.selectedPlanPrice / 100).toFixed(0) : null },
     canSubmit() {
       return this.target && this.target.current_status === 'active' && !!this.selectedPlanId
     },
@@ -222,9 +224,17 @@ export default {
     this.loadDetail()
     this.loadSensorData()
     this.loadChartData()
+    this.fetchPlans()
   },
 
   methods: {
+
+    async fetchPlans() {
+      try {
+        const res = await uni.request({ url: `${SERVER_URL}/api/plans`, method: 'GET' })
+        this.plans = res.data || []
+      } catch (e) {}
+    },
 
     openPoster() {
       if (!this.target) return
@@ -454,7 +464,7 @@ export default {
     },
 
     selectPlan(plan) {
-      this.selectedPlanId = plan.id
+      this.selectedPlanId = plan.plan_key
     },
 
     async loadSensorData() {
