@@ -76,9 +76,6 @@
       </view>
     </view>
 
-    <!-- 返回按钮 -->
-    <view style="text-align: center; margin: 32rpx 0;">
-      <text style="color: #999; font-size: 28rpx; cursor: pointer;" @click="goBack">返回列表</text>
     <!-- 探望入口 -->
     <view class="visit-bar">
       <view class="visit-btn" @click="goVisit">
@@ -87,6 +84,10 @@
         <text class="visit-sub">查看实时照片与历史时间轴</text>
       </view>
     </view>
+
+    <!-- 返回按钮 -->
+    <view style="text-align: center; margin: 32rpx 0 60rpx;">
+      <text style="color: #999; font-size: 28rpx; cursor: pointer;" @click="goBack">返回列表</text>
     </view>
   </view>
 </template>
@@ -94,6 +95,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getMyOrders, getOrderUpdates, getOrderDeliveries } from '@/api/orders.js'
+import { SERVER_URL } from '@/config.js'
 
 const order = ref(null)
 const updates = ref([])
@@ -150,7 +152,10 @@ const logTypeEmoji = (type) => {
 
 const planLabel = computed(() => {
   if (!order.value) return ''
-  const map = { season: '茶树认养·季度版', annual: '茶树认养·年度版', trial: '茶树认养·体验版' }
+  const map = {
+    season: '茶树认养·季度版', annual: '茶树认养·年度版', trial: '茶树认养·体验版',
+    tea_basic: '茶树认养·基础档', tea_standard: '茶树认养·标准档', plant_basic: '植物认养·基础档'
+  }
   return map[order.value.plan_type] || order.value.plan_type || ''
 })
 
@@ -421,11 +426,6 @@ const loadData = async () => {
   background: #fff8e1;
 }
 
-.hero-bg-default {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
-}
 .visit-bar {
   margin: 32rpx 30rpx 0;
 }

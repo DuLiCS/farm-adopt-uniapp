@@ -111,7 +111,6 @@ export default {
   onShow() {
     const token = uni.getStorageSync('token')
     this.isLoggedIn = !!token
-    this.loadTargets()
   },
 
   onLoad() {
