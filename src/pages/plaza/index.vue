@@ -27,6 +27,24 @@
       <view class="sensor-bar-item sensor-bar-time">{{ sensorUpdateText }}</view>
     </view>
 
+    <!-- 今日节气 -->
+    <view class="jieqi-card" v-if="jieqiInfo">
+      <view v-if="jieqiInfo.type === 'today'" class="jieqi-today">
+        <view class="jieqi-today-name">{{ jieqiInfo.name }}</view>
+        <view class="jieqi-today-label">今日节气</view>
+        <view class="jieqi-copy">{{ jieqiInfo.copy }}</view>
+      </view>
+      <view v-else class="jieqi-countdown">
+        <view class="jieqi-countdown-left">
+          <view class="jieqi-next-label">距</view>
+          <view class="jieqi-next-name">{{ jieqiInfo.name }}</view>
+          <view class="jieqi-next-label">还有</view>
+        </view>
+        <view class="jieqi-days">{{ jieqiInfo.days }}<text class="jieqi-days-unit">天</text></view>
+        <view class="jieqi-countdown-copy">{{ jieqiInfo.copy }}</view>
+      </view>
+    </view>
+
     <!-- 山南对象列表 -->
     <view class="section">
       <view class="section-title">还没有主人</view>
@@ -94,6 +112,72 @@
 import { getPlazaTargets } from '@/api/plaza.js'
 import { SERVER_URL } from '@/config.js'
 
+const JIEQI = {
+  '2026-01-05': '小寒', '2026-01-20': '大寒',
+  '2026-02-04': '立春', '2026-02-19': '雨水',
+  '2026-03-06': '惊蛰', '2026-03-20': '春分',
+  '2026-04-05': '清明', '2026-04-20': '谷雨',
+  '2026-05-06': '立夏', '2026-05-21': '小满',
+  '2026-06-06': '芒种', '2026-06-21': '夏至',
+  '2026-07-07': '小暑', '2026-07-23': '大暑',
+  '2026-08-07': '立秋', '2026-08-23': '处暑',
+  '2026-09-08': '白露', '2026-09-23': '秋分',
+  '2026-10-08': '寒露', '2026-10-23': '霜降',
+  '2026-11-07': '立冬', '2026-11-22': '小雪',
+  '2026-12-07': '大雪', '2026-12-22': '冬至',
+  '2027-01-05': '小寒', '2027-01-20': '大寒',
+  '2027-02-03': '立春', '2027-02-18': '雨水',
+  '2027-03-06': '惊蛰', '2027-03-21': '春分',
+  '2027-04-05': '清明', '2027-04-20': '谷雨',
+  '2027-05-06': '立夏', '2027-05-21': '小满',
+  '2027-06-06': '芒种', '2027-06-21': '夏至',
+  '2027-07-07': '小暑', '2027-07-23': '大暑',
+  '2027-08-07': '立秋', '2027-08-23': '处暑',
+  '2027-09-08': '白露', '2027-09-23': '秋分',
+  '2027-10-08': '寒露', '2027-10-23': '霜降',
+  '2027-11-07': '立冬', '2027-11-22': '小雪',
+  '2027-12-07': '大雪', '2027-12-22': '冬至',
+  '2028-01-06': '小寒', '2028-01-21': '大寒',
+  '2028-02-04': '立春', '2028-02-19': '雨水',
+  '2028-03-05': '惊蛰', '2028-03-20': '春分',
+  '2028-04-04': '清明', '2028-04-19': '谷雨',
+  '2028-05-05': '立夏', '2028-05-20': '小满',
+  '2028-06-05': '芒种', '2028-06-21': '夏至',
+  '2028-07-06': '小暑', '2028-07-22': '大暑',
+  '2028-08-07': '立秋', '2028-08-22': '处暑',
+  '2028-09-07': '白露', '2028-09-22': '秋分',
+  '2028-10-07': '寒露', '2028-10-22': '霜降',
+  '2028-11-07': '立冬', '2028-11-21': '小雪',
+  '2028-12-06': '大雪', '2028-12-21': '冬至',
+}
+
+const JIEQI_COPY = {
+  '小寒': '山南天寒，茶树在雪下悄悄积蓄力量',
+  '大寒': '一年最冷的时候，也是等待最有意义的时候',
+  '立春': '春意萌动，茶芽已在枝头悄悄探头',
+  '雨水': '春雨润土，茶园从沉睡中缓缓苏醒',
+  '惊蛰': '一声春雷，万物从冬眠中被轻轻唤醒',
+  '春分': '昼夜均等，茶树迎来最平衡的生长时节',
+  '清明': '明前茶贵如金，最好的春茶正在等你',
+  '谷雨': '雨润百谷，春茶进入最后的采摘窗口',
+  '立夏': '绿意渐浓，茶园进入夏日守候',
+  '小满': '枝繁叶茂，茶树在初夏中静静生长',
+  '芒种': '收获与播种并行，农庄最忙碌的节气',
+  '夏至': '最长的白天，山南茶树全力进行光合',
+  '小暑': '暑气渐盛，茶树在高温中默默沉淀内质',
+  '大暑': '一年最热，茶树以沉默对抗酷暑',
+  '立秋': '暑去秋来，茶叶开始新一轮积累',
+  '处暑': '暑气消散，秋茶悄然萌发',
+  '白露': '露珠晶莹，秋茶带着清晨的气息',
+  '秋分': '平分秋色，丰收与感谢的时节',
+  '寒露': '秋意渐深，茶树准备进入休眠',
+  '霜降': '初霜将至，茶树最后一次深呼吸',
+  '立冬': '冬季开始，茶树进入一年的休养',
+  '小雪': '山南初雪，茶园银装素裹',
+  '大雪': '大雪封山，茶树在雪下做着春天的梦',
+  '冬至': '最短的白天，也是新一轮轮回的起点',
+}
+
 export default {
   data() {
     return {
@@ -121,6 +205,20 @@ export default {
   },
 
   computed: {
+    jieqiInfo() {
+      const now = new Date()
+      const pad = n => String(n).padStart(2, '0')
+      const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+      if (JIEQI[todayStr]) {
+        const name = JIEQI[todayStr]
+        return { type: 'today', name, copy: JIEQI_COPY[name] || '' }
+      }
+      const next = Object.keys(JIEQI).sort().find(d => d > todayStr)
+      if (!next) return null
+      const diffDays = Math.ceil((new Date(next) - now) / 86400000)
+      const name = JIEQI[next]
+      return { type: 'countdown', name, days: diffDays, copy: JIEQI_COPY[name] || '' }
+    },
     sensorUpdateText() {
       if (!this.sensorData || !this.sensorData.recorded_at) return ''
       const now = new Date()
@@ -328,6 +426,25 @@ export default {
 .sensor-bar-time { color: #999; margin-left: auto; }
 
 .log-section { padding: 0 32rpx 40rpx; }
+
+.jieqi-card { margin: 24rpx 32rpx 0; border-radius: 20rpx; overflow: hidden; }
+.jieqi-today {
+  background: linear-gradient(135deg, #2d5a27 0%, #4a7c3f 100%);
+  padding: 32rpx 36rpx; display: flex; flex-direction: column; gap: 8rpx;
+}
+.jieqi-today-name { font-size: 52rpx; font-weight: bold; color: white; line-height: 1; }
+.jieqi-today-label { font-size: 22rpx; color: rgba(255,255,255,0.6); }
+.jieqi-copy { font-size: 26rpx; color: rgba(255,255,255,0.85); margin-top: 8rpx; line-height: 1.6; }
+.jieqi-countdown {
+  background: #f6faf5; border: 1rpx solid #d4e8d0;
+  padding: 28rpx 36rpx; display: flex; align-items: center; gap: 20rpx;
+}
+.jieqi-countdown-left { display: flex; align-items: center; gap: 8rpx; flex-shrink: 0; }
+.jieqi-next-label { font-size: 24rpx; color: #999; }
+.jieqi-next-name { font-size: 30rpx; font-weight: bold; color: #2d5a27; }
+.jieqi-days { font-size: 48rpx; font-weight: bold; color: #2d5a27; flex-shrink: 0; line-height: 1; }
+.jieqi-days-unit { font-size: 22rpx; font-weight: normal; margin-left: 4rpx; }
+.jieqi-countdown-copy { font-size: 24rpx; color: #888; line-height: 1.6; flex: 1; }
 .log-card { background: white; border-radius: 16rpx; padding: 32rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
 .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .log-tag { font-size: 22rpx; color: white; background: #2d5a27; padding: 4rpx 16rpx; border-radius: 999rpx; }

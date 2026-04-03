@@ -46,6 +46,11 @@
  <view class="progress-text">第{{ adoptDays(order) }}天 / 共{{ totalDays(order) }}天</view>
  </view>
  <view class="card-expire">到期：{{ formatDate(order.expire_date) }}</view>
+ <view v-if="latestUpdates[order.id]" class="card-latest-update">
+   <text class="update-dot">🌿</text>
+   <text class="update-ago">{{ updateAgo(latestUpdates[order.id]) }}</text>
+   <text class="update-desc">{{ latestUpdates[order.id].description }}</text>
+ </view>
  </view>
  </view>
  </view>
@@ -71,7 +76,7 @@
 </template>
 
 <script>
-import { getMyOrders } from '@/api/orders.js'
+import { getMyOrders, getOrderUpdates } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
 
 export default {
@@ -81,7 +86,8 @@ export default {
  loading: false,
  phone: '',
  showPoster: false,
- posterOrder: null
+ posterOrder: null,
+ latestUpdates: {}
  }
  },
 
@@ -111,12 +117,33 @@ export default {
  try {
  const data = await getMyOrders()
  this.orders = data || []
+ this.loadLatestUpdates(this.orders)
  } catch (e) {
  uni.showToast({ title: '加载失败', icon: 'none' })
  this.orders = []
  } finally {
  this.loading = false
  }
+ },
+ async loadLatestUpdates(orders) {
+ if (!orders.length) return
+ const results = await Promise.all(
+   orders.map(o =>
+     getOrderUpdates(o.id)
+       .then(data => ({ id: o.id, update: (data || [])[0] || null }))
+       .catch(() => ({ id: o.id, update: null }))
+   )
+ )
+ const map = {}
+ results.forEach(r => { map[r.id] = r.update })
+ this.latestUpdates = map
+ },
+ updateAgo(update) {
+ if (!update || !update.updated_at) return ''
+ const diff = Math.floor((new Date() - new Date(update.updated_at + 'Z')) / 86400000)
+ if (diff === 0) return '今天'
+ if (diff === 1) return '昨天'
+ return diff + '天前'
  },
  getImageUrl(path) {
  if (!path) return ''
@@ -274,6 +301,14 @@ export default {
 .progress-fill { height: 100%; background: linear-gradient(90deg, #2d5a27, #5a8f4a); border-radius: 999rpx; transition: width 0.3s; }
 .progress-text { font-size: 22rpx; color: #999; }
 .card-expire { font-size: 22rpx; color: #bbb; }
+.card-latest-update {
+ display: flex; align-items: flex-start; gap: 8rpx;
+ margin-top: 14rpx; padding-top: 14rpx;
+ border-top: 1rpx solid #f5f5f5;
+}
+.update-dot { font-size: 20rpx; flex-shrink: 0; margin-top: 2rpx; }
+.update-ago { font-size: 20rpx; color: #2d5a27; flex-shrink: 0; white-space: nowrap; }
+.update-desc { font-size: 20rpx; color: #999; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .settings-section { margin: 32rpx; background: white; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); }
 .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 32rpx; font-size: 28rpx; color: #666; }
 .arrow { font-size: 32rpx; color: #ccc; }
