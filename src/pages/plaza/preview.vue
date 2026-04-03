@@ -140,9 +140,8 @@ export default {
       selectedPlanId: null,
       loading: false,
       showAddressForm: false,
-      address: { name: '', phone: '', address: '', note: '',
-      showPoster: false
-    },
+      showPoster: false,
+      address: { name: '', phone: '', address: '', note: '' },
       sensorData: null,
       chartHours: 24,
       chartLoading: false,
@@ -493,7 +492,7 @@ export default {
       try {
         uni.showLoading({ title: '创建订单中...' })
         const res = await uni.request({
-          url: '/orders/',
+          url: SERVER_URL + '/orders/',
           method: 'POST',
           header: { 'Authorization': 'Bearer ' + (uni.getStorageSync('token') || '') },
           data: {
