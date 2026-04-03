@@ -10,7 +10,21 @@
     </view>
     <view class="latest-empty" v-else>
       <text class="empty-icon">📷</text>
-      <text class="empty-text">暂无照片，白天每小时自动拍摄</text>
+      <text class="empty-text">树还没被拍到，白天自动守候中</text>
+    </view>
+
+    <view class="stats-bar" v-if="!loading && photoStats.totalPhotos > 0">
+      <view class="stats-item">
+        <text class="stats-num">{{ photoStats.totalPhotos }}</text>
+        <text class="stats-label">张照片</text>
+      </view>
+      <view class="stats-divider">·</view>
+      <view class="stats-item">
+        <text class="stats-num">{{ photoStats.totalDays }}</text>
+        <text class="stats-label">天记录</text>
+      </view>
+      <view class="stats-divider" v-if="todayJieqi">·</view>
+      <view class="stats-jieqi" v-if="todayJieqi">今日 {{ todayJieqi }}</view>
     </view>
 
     <view class="timeline-section">
@@ -183,6 +197,17 @@ export default {
         jieqi: JIEQI[group.date] || null,
         keyFrames: pickKeyFrames(group.photos)
       }))
+    },
+    photoStats() {
+      const totalDays = this.processedDates.length
+      const totalPhotos = this.processedDates.reduce((sum, g) => sum + g.photos.length, 0)
+      return { totalDays, totalPhotos }
+    },
+    todayJieqi() {
+      const now = new Date()
+      const pad = n => String(n).padStart(2, '0')
+      const key = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`
+      return JIEQI[key] || null
     }
   },
 
@@ -245,6 +270,12 @@ export default {
 .latest-empty { height: 300rpx; background: #1a3d16; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16rpx; }
 .empty-icon { font-size: 64rpx; }
 .empty-text { font-size: 26rpx; color: rgba(255,255,255,0.5); }
+.stats-bar { display: flex; align-items: center; justify-content: center; padding: 20rpx 32rpx; background: rgba(45,90,39,0.06); gap: 16rpx; }
+.stats-item { display: flex; align-items: baseline; gap: 6rpx; }
+.stats-num { font-size: 32rpx; font-weight: bold; color: #2d5a27; }
+.stats-label { font-size: 22rpx; color: #999; }
+.stats-divider { font-size: 24rpx; color: #ddd; }
+.stats-jieqi { font-size: 22rpx; color: #2d5a27; background: rgba(45,90,39,0.1); padding: 4rpx 16rpx; border-radius: 999rpx; }
 .timeline-section { padding: 32rpx; }
 .section-title { font-size: 30rpx; font-weight: bold; color: #2d5a27; margin-bottom: 24rpx; }
 .tip { text-align: center; color: #999; font-size: 28rpx; padding: 60rpx 0; }

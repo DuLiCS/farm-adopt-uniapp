@@ -11,7 +11,8 @@
       <!-- 茶树认养分组 -->
       <view class="section-group" v-if="teaPlans.length">
         <view class="group-title">茶树认养</view>
-        <view class="card" v-for="plan in teaPlans" :key="plan.id" style="margin-bottom: 24rpx;" @click="showDetail(plan)">
+        <view class="card" v-for="plan in teaPlans" :key="plan.id" style="position: relative; margin-bottom: 24rpx;" @click="showDetail(plan)">
+          <view v-if="isRecommended(plan)" class="recommend-badge">最受欢迎</view>
           <view style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx;">
             <view style="font-size: 30rpx; font-weight: bold;">{{ plan.name }}</view>
             <view style="font-size: 32rpx; color: #2d5a27; font-weight: bold;">¥{{ formatPrice(plan.price) }}</view>
@@ -29,7 +30,8 @@
       <!-- 植物认养分组 -->
       <view class="section-group" v-if="plantPlans.length">
         <view class="group-title">植物认养</view>
-        <view class="card" v-for="plan in plantPlans" :key="plan.id" style="margin-bottom: 24rpx;" @click="showDetail(plan)">
+        <view class="card" v-for="plan in plantPlans" :key="plan.id" style="position: relative; margin-bottom: 24rpx;" @click="showDetail(plan)">
+          <view v-if="isRecommended(plan)" class="recommend-badge">最受欢迎</view>
           <view style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx;">
             <view style="font-size: 30rpx; font-weight: bold;">{{ plan.name }}</view>
             <view style="font-size: 32rpx; color: #2d5a27; font-weight: bold;">¥{{ formatPrice(plan.price) }}</view>
@@ -47,7 +49,8 @@
       <!-- 其他分组 -->
       <view class="section-group" v-if="otherPlans.length">
         <view class="group-title">其他认养</view>
-        <view class="card" v-for="plan in otherPlans" :key="plan.id" style="margin-bottom: 24rpx;" @click="showDetail(plan)">
+        <view class="card" v-for="plan in otherPlans" :key="plan.id" style="position: relative; margin-bottom: 24rpx;" @click="showDetail(plan)">
+          <view v-if="isRecommended(plan)" class="recommend-badge">最受欢迎</view>
           <view style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx;">
             <view style="font-size: 30rpx; font-weight: bold;">{{ plan.name }}</view>
             <view style="font-size: 32rpx; color: #2d5a27; font-weight: bold;">¥{{ formatPrice(plan.price) }}</view>
@@ -133,6 +136,9 @@ export default {
     goPlaza() {
       this.selectedPlan = null
       uni.switchTab({ url: '/pages/plaza/index' })
+    },
+    isRecommended(plan) {
+      return plan.plan_key === 'tea_standard' || plan.plan_key === 'plant_basic'
     }
   }
 }
@@ -174,4 +180,10 @@ export default {
   padding: 28rpx; font-size: 32rpx; width: 100%; border: none;
 }
 .btn-adopt:active { background: #234820; }
+.recommend-badge {
+  position: absolute; top: 0; right: 32rpx;
+  background: linear-gradient(135deg, #e8a020, #c47d10);
+  color: white; font-size: 20rpx; padding: 8rpx 20rpx;
+  border-radius: 0 0 14rpx 14rpx; font-weight: 500; z-index: 1;
+}
 </style>

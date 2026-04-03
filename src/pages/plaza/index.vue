@@ -61,6 +61,7 @@
             <view class="card-name">{{ target.name }}</view>
             <view class="card-location">{{ target.location_desc }}</view>
             <view class="card-status available">等待认养</view>
+            <view class="card-waiting" v-if="waitingDays(target)">已等待 {{ waitingDays(target) }} 天</view>
           </view>
         </view>
       </view>
@@ -341,6 +342,14 @@ export default {
       return map[key] || type
     },
 
+    waitingDays(target) {
+      if (!target.created_at) return null
+      const created = new Date(target.created_at)
+      const now = new Date()
+      const days = Math.max(0, Math.floor((now - created) / 86400000))
+      return days > 0 ? days : null
+    },
+
     defaultImage(type) {
       const key = type ? type.toLowerCase() : type
       if (key === 'tea') return '../../assets/images/tea-card.jpg'
@@ -407,6 +416,7 @@ export default {
 }
 .card-status.available { background: #e8f5e9; color: #2d5a27; }
 .card-status.adopted { background: #f5f5f5; color: #999; }
+.card-waiting { font-size: 20rpx; color: #e8a020; margin-top: 8rpx; }
 
 .philosophy-section {
   padding: 60rpx 32rpx; text-align: center; background: #fff; margin-top: 40rpx;

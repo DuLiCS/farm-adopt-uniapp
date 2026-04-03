@@ -51,6 +51,10 @@
  <view class="progress-text">第{{ adoptDays(order) }}天 / 共{{ totalDays(order) }}天</view>
  </view>
  <view class="card-expire">到期：{{ formatDate(order.expire_date) }}</view>
+ <view v-if="milestoneInfo(order)" class="milestone-badge" :class="milestoneInfo(order).type">
+   <text v-if="milestoneInfo(order).type === 'hit'">{{ milestoneInfo(order).icon }} {{ milestoneInfo(order).label }}！</text>
+   <text v-else>还有 {{ milestoneInfo(order).remaining }} 天{{ milestoneInfo(order).label }}</text>
+ </view>
  <view v-if="latestUpdates[order.id]" class="card-latest-update">
    <text class="update-dot">🌿</text>
    <text class="update-ago">{{ updateAgo(latestUpdates[order.id]) }}</text>
@@ -231,6 +235,19 @@ export default {
  if (total === 0) return 0
  return Math.min(100, Math.round((this.adoptDays(order) / total) * 100))
  },
+ milestoneInfo(order) {
+   const days = this.adoptDays(order)
+   const milestones = [
+     { days: 30, label: '守候满月', icon: '🌕' },
+     { days: 100, label: '守候百日', icon: '💯' },
+     { days: 365, label: '守候一周年', icon: '🎋' },
+   ]
+   const hit = milestones.find(m => m.days === days)
+   if (hit) return { type: 'hit', ...hit }
+   const next = milestones.find(m => m.days > days && m.days - days <= 10)
+   if (next) return { type: 'upcoming', ...next, remaining: next.days - days }
+   return null
+ },
  formatDate(val) {
  if (!val) return ''
  return val.substring(0, 10)
@@ -345,6 +362,9 @@ export default {
 .progress-fill { height: 100%; background: linear-gradient(90deg, #2d5a27, #5a8f4a); border-radius: 999rpx; transition: width 0.3s; }
 .progress-text { font-size: 22rpx; color: #999; }
 .card-expire { font-size: 22rpx; color: #bbb; }
+.milestone-badge { margin-top: 10rpx; padding: 6rpx 16rpx; border-radius: 8rpx; font-size: 22rpx; display: inline-block; }
+.milestone-badge.hit { background: linear-gradient(135deg, #fff8e1, #fff3cd); color: #c47d10; font-weight: 500; }
+.milestone-badge.upcoming { background: #f0f9f0; color: #2d5a27; }
 .card-latest-update {
  display: flex; align-items: flex-start; gap: 8rpx;
  margin-top: 14rpx; padding-top: 14rpx;

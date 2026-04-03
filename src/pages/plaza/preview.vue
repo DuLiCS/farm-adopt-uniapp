@@ -70,6 +70,7 @@
       <view class="section-title">选一个方式加入</view>
       <view class="plan-list">
         <view class="plan-card" :class="{ selected: selectedPlanId === plan.id }" v-for="plan in availablePlans" :key="plan.id" @click="selectPlan(plan)">
+          <view v-if="isRecommended(plan)" class="plan-recommend-badge">最受欢迎</view>
           <view class="plan-name">{{ plan.name }}</view>
           <view class="plan-desc">{{ plan.description }}</view>
           <view class="plan-price">¥{{ (plan.price / 100).toFixed(0) }}</view>
@@ -480,6 +481,9 @@ export default {
     selectPlan(plan) {
       this.selectedPlanId = plan.plan_key
     },
+    isRecommended(plan) {
+      return plan.plan_key === 'tea_standard' || plan.plan_key === 'plant_basic'
+    },
 
     async loadSensorData() {
       try {
@@ -581,6 +585,12 @@ export default {
 .plan-desc { font-size: 26rpx; color: #666; line-height: 1.5; margin-bottom: 16rpx; }
 .plan-price { font-size: 36rpx; font-weight: bold; color: #2d5a27; }
 .plan-check { position: absolute; top: 20rpx; right: 20rpx; background: #2d5a27; color: white; padding: 6rpx 16rpx; border-radius: 999rpx; font-size: 22rpx; }
+.plan-recommend-badge {
+  position: absolute; top: 0; right: 24rpx;
+  background: linear-gradient(135deg, #e8a020, #c47d10);
+  color: white; font-size: 20rpx; padding: 6rpx 16rpx;
+  border-radius: 0 0 12rpx 12rpx; font-weight: 500;
+}
 .adopted-notice { margin: 80rpx 30rpx; text-align: center; padding: 60rpx; background: white; border-radius: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
 .notice-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 .notice-text { font-size: 28rpx; color: #666; }
