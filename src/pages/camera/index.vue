@@ -230,7 +230,7 @@ export default {
           this.dates = res.data.dates
         }
       } catch (e) {
-        uni.showToast({ title: '加载失败', icon: 'none' })
+        uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
       } finally {
         this.loading = false
       }

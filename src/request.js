@@ -42,7 +42,7 @@ function request(url, options = {}) {
           const pages = getCurrentPages()
           const currentRoute = pages.length ? pages[pages.length - 1].route : ''
           if (!currentRoute.includes('login')) {
-            uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
+            uni.showToast({ title: '有一段时间没来了，重新登录一下', icon: 'none' })
             setTimeout(() => {
               uni.navigateTo({ url: '/pages/login/index' })
             }, 1500)
@@ -55,7 +55,7 @@ function request(url, options = {}) {
         }
       },
       fail: (err) => {
-        reject(err || '网络错误')
+        reject(err || '山南信号不好，稍后再试试')
       }
     })
   })

@@ -4,7 +4,8 @@
 
     <view v-else-if="logs.length === 0" class="empty-state">
       <view class="empty-icon">🌿</view>
-      <view class="empty-text">暂无日志记录</view>
+      <view class="empty-text">农场主还在忙着照顾这片土地</view>
+      <view class="empty-sub">有新动态时会第一时间记录在这里</view>
     </view>
 
     <view v-else>
@@ -27,7 +28,7 @@
         <text v-if="loading">加载中...</text>
         <text v-else>加载更多</text>
       </view>
-      <view class="no-more" v-else-if="logs.length > 0">已是全部记录</view>
+      <view class="no-more" v-else-if="logs.length > 0">· 这是山南所有的记忆 ·</view>
     </view>
   </view>
 </template>
@@ -72,7 +73,7 @@ export default {
         }
         this.hasMore = items.length >= this.pageSize
       } catch (e) {
-        uni.showToast({ title: '加载失败', icon: 'none' })
+        uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
       } finally {
         this.loading = false
       }
@@ -108,7 +109,8 @@ export default {
 .loading-state { text-align: center; padding: 120rpx 0; color: #999; font-size: 28rpx; }
 .empty-state { text-align: center; padding: 120rpx 0; }
 .empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
-.empty-text { font-size: 28rpx; color: #999; }
+.empty-text { font-size: 28rpx; color: #666; margin-bottom: 12rpx; }
+.empty-sub { font-size: 24rpx; color: #bbb; }
 
 .log-item { display: flex; gap: 0; margin-bottom: 0; }
 

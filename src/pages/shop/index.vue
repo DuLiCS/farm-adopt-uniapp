@@ -67,7 +67,7 @@
     </template>
 
     <view style="padding: 0 32rpx; margin-top: 60rpx;">
-      <button class="cta-outline" @click="goPlaza">去看看有哪些还没有主人</button>
+      <button class="cta-outline" @click="goPlaza">去广场，找一棵等你的树</button>
     </view>
 
     <!-- 套餐详情弹窗 -->
@@ -84,7 +84,7 @@
           <view class="rich-text" v-html="selectedPlan.details"></view>
         </view>
         <view class="drawer-footer">
-          <button class="btn-adopt" @click="goPlaza">去选一棵认养</button>
+          <button class="btn-adopt" @click="goPlaza">去广场找一棵</button>
           <view style="text-align: center; margin-top: 20rpx;" @click="closeDetail">
             <text style="font-size: 26rpx; color: #999;">关闭</text>
           </view>

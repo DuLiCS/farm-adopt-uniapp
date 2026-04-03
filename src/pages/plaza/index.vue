@@ -291,7 +291,7 @@ export default {
         this.adoptedTargets = targets.filter(t => t.current_status && t.current_status !== 'active')
       } catch (e) {
         console.error('加载失败:', e)
-        uni.showToast({ title: '加载失败', icon: 'none' })
+        uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
         this.availableTargets = []
         this.adoptedTargets = []
       }

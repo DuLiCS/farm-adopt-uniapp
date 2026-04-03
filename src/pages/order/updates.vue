@@ -5,8 +5,10 @@
     </view>
 
     <view v-else>
-      <view v-if="updates.length === 0" style="text-align: center; margin-top: 120px; color: #999;">
-        暂无更新记录
+      <view v-if="updates.length === 0" class="updates-empty">
+        <view class="updates-empty-icon">🌱</view>
+        <view class="updates-empty-text">农场主还没发来消息</view>
+        <view class="updates-empty-sub">有动态时会第一时间出现在这里</view>
       </view>
 
       <view v-else>
@@ -77,7 +79,7 @@ export default {
       } catch (e) {
         uni.hideLoading()
         console.error(e)
-        uni.showToast({ title: '加载失败，请重试', icon: 'none' })
+        uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
         this.updates = []
       } finally {
         this.loading = false
@@ -93,5 +95,9 @@ export default {
 
 <style scoped>
 .container { padding: 32px; min-height: 100vh; box-sizing: border-box; }
+.updates-empty { text-align: center; padding: 120rpx 40rpx; }
+.updates-empty-icon { font-size: 72rpx; margin-bottom: 24rpx; }
+.updates-empty-text { font-size: 30rpx; color: #555; margin-bottom: 12rpx; }
+.updates-empty-sub { font-size: 24rpx; color: #bbb; }
 .card { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 </style>

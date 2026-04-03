@@ -56,7 +56,8 @@
       </view>
     </view>
     <view class="timeline-empty" v-else>
-      还没有更新记录，请等待农场主的第一次记录
+      <view style="font-size: 48rpx; margin-bottom: 16rpx;">🌱</view>
+      <view>农场主还在路上，等待第一条记录</view>
     </view>
     <view v-if="updates.length > 0" class="view-all-btn" @click="goUpdates">查看全部记录 →</view>
 
@@ -84,6 +85,19 @@
         <text class="visit-text">探望我的树</text>
         <text class="visit-sub">查看实时照片与历史时间轴</text>
       </view>
+    </view>
+
+    <!-- 到期提醒 / 已结束 CTA -->
+    <view v-if="order && (order.status === 'expired' || order.status === 'EXPIRED')" class="expire-notice expired-notice">
+      <view class="expire-icon">🍃</view>
+      <view class="expire-title">这段守候已画上句点</view>
+      <view class="expire-sub">感谢你陪伴山南走过这段时光</view>
+      <view class="expire-cta" @click="goPlaza">去认养下一棵 →</view>
+    </view>
+    <view v-else-if="order && daysRemaining !== null && daysRemaining <= 30 && daysRemaining >= 0" class="expire-notice renew-notice">
+      <view class="expire-title">守候还剩 {{ daysRemaining }} 天</view>
+      <view class="expire-sub">与这棵树的缘分即将进入尾声，考虑续期？</view>
+      <view class="expire-cta" @click="goPlaza">续期 / 认养新的一棵 →</view>
     </view>
 
     <!-- 返回按钮 -->
@@ -123,6 +137,13 @@ const adoptDays = computed(() => {
   const start = new Date(order.value.start_date)
   const today = new Date()
   return Math.floor((today - start) / (1000 * 60 * 60 * 24))
+})
+
+const daysRemaining = computed(() => {
+  if (!order.value || !order.value.expire_date) return null
+  const expire = new Date(order.value.expire_date)
+  const today = new Date()
+  return Math.floor((expire - today) / (1000 * 60 * 60 * 24))
 })
 
 const latestUpdate = computed(() => {
@@ -174,6 +195,10 @@ const goBack = () => {
   uni.navigateBack()
 }
 
+const goPlaza = () => {
+  uni.switchTab({ url: '/pages/plaza/index' })
+}
+
 const goVisit = () => {
   uni.navigateTo({ url: '/pages/camera/index' })
 }
@@ -203,7 +228,7 @@ const loadData = async () => {
     deliveries.value = await getOrderDeliveries(orderId.value)
   } catch (e) {
     console.error(e)
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
   } finally {
     uni.hideLoading()
   }
@@ -455,4 +480,18 @@ const loadData = async () => {
 .visit-text { font-size: 32rpx; font-weight: bold; color: white; }
 .visit-sub { font-size: 22rpx; color: rgba(255,255,255,0.6); }
 
+.expire-notice {
+  margin: 32rpx 30rpx; border-radius: 20rpx; padding: 40rpx 36rpx; text-align: center;
+}
+.expired-notice {
+  background: #f5f5f0; border: 1rpx solid #e8e8e0;
+}
+.renew-notice {
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1rpx solid #f0d080;
+}
+.expire-icon { font-size: 48rpx; margin-bottom: 16rpx; }
+.expire-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 10rpx; }
+.expire-sub { font-size: 24rpx; color: #888; margin-bottom: 24rpx; }
+.expire-cta { font-size: 26rpx; color: #2d5a27; font-weight: 500; }
 </style>

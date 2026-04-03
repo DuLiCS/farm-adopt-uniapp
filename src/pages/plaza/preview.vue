@@ -109,8 +109,8 @@
           <input class="form-input" v-model="address.note" placeholder="如：放门卫处（可不填）" />
         </view>
 
-        <button class="form-submit-btn" @click="confirmOrder">确认下单</button>
-        <button class="form-cancel-btn" @click="showAddressForm=false">取消</button>
+        <button class="form-submit-btn" @click="confirmOrder">开始守候</button>
+        <button class="form-cancel-btn" @click="showAddressForm=false">再想想</button>
       </view>
     </view>
 
@@ -121,6 +121,7 @@
         <view class="cta-price" v-if="selectedPlanPriceDisplay">¥{{ selectedPlanPriceDisplay }}<text style="font-size: 24rpx; color: #999;">/认养</text></view>
       </view>
       <button :disabled="!canSubmit" :class="!canSubmit ? 'cta-btn-disabled' : 'cta-btn'" @click="submitOrder">{{ submitBtnText }}</button>
+
     </view>
   </view>
 
@@ -196,9 +197,9 @@ export default {
     },
     submitBtnText() {
       if (!this.target) return '加载中'
-      if (this.target.current_status !== 'active') return '已被认养'
-      if (!this.selectedPlanId) return '选好了再来'
-      return '加入山南记'
+      if (this.target.current_status !== 'active') return '已有人在守候'
+      if (!this.selectedPlanId) return '先选一个方式'
+      return '开始守候这棵树'
     },
     tempTag() {
       const v = this.sensorData && this.sensorData.temperature
@@ -369,7 +370,7 @@ export default {
         this.target = data.target
         this.updates = data.updates.slice(0, 3)
       } catch (e) {
-        uni.showToast({ title: '加载失败', icon: 'none' })
+        uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
       } finally {
         uni.hideLoading()
       }

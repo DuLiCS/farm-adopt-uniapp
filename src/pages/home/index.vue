@@ -17,8 +17,8 @@
  <view v-else-if="orders.length === 0" class="empty-state">
  <view class="empty-icon">🍃</view>
  <view class="empty-title">还没有认养记录</view>
- <view class="empty-sub">去广场找一棵属于你的茶树</view>
- <button class="btn-primary" @click="goPlaza">去广场</button>
+ <view class="empty-sub">这里有一棵茶树，正在等待有缘人</view>
+ <button class="btn-primary" @click="goPlaza">去山南广场看看</button>
  </view>
 
  <view v-else class="order-list">
@@ -158,7 +158,7 @@ export default {
  this.orders = data || []
  this.loadLatestUpdates(this.orders)
  } catch (e) {
- uni.showToast({ title: '加载失败', icon: 'none' })
+ uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
  this.orders = []
  } finally {
  this.loading = false
