@@ -58,6 +58,7 @@
     <view class="timeline-empty" v-else>
       还没有更新记录，请等待农场主的第一次记录
     </view>
+    <view v-if="updates.length > 0" class="view-all-btn" @click="goUpdates">查看全部记录 →</view>
 
     <!-- 段四：权益状态 -->
     <view class="rights-section" v-if="order">
@@ -175,6 +176,10 @@ const goBack = () => {
 
 const goVisit = () => {
   uni.navigateTo({ url: '/pages/camera/index' })
+}
+
+const goUpdates = () => {
+  uni.navigateTo({ url: '/pages/order/updates?order_id=' + orderId.value })
 }
 
 onMounted(() => {
@@ -388,6 +393,13 @@ const loadData = async () => {
   text-align: center;
   color: #999;
   padding: 80rpx 0;
+}
+.view-all-btn {
+  text-align: right;
+  font-size: 26rpx;
+  color: #2d5a27;
+  padding: 0 30rpx 40rpx;
+  cursor: pointer;
 }
 
 /* 权益 */

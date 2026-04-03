@@ -36,7 +36,19 @@ function request(url, options = {}) {
       header,
       data,
       success: (res) => {
-        if (res.statusCode >= 400) {
+        if (res.statusCode === 401) {
+          uni.removeStorageSync('token')
+          uni.removeStorageSync('phone')
+          const pages = getCurrentPages()
+          const currentRoute = pages.length ? pages[pages.length - 1].route : ''
+          if (!currentRoute.includes('login')) {
+            uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
+            setTimeout(() => {
+              uni.navigateTo({ url: '/pages/login/index' })
+            }, 1500)
+          }
+          reject({ message: '登录已过期' })
+        } else if (res.statusCode >= 400) {
           reject(res.data || '请求失败')
         } else {
           resolve(res.data)
