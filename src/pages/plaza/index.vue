@@ -1,11 +1,11 @@
 <template>
   <view class="container">
-    <!-- 顶部 -->
+    <!-- 顶部（custom nav） -->
     <view class="plaza-header">
-      <view class="logo">🌿 山南广场</view>
+      <view class="logo">🌿 山南</view>
       <view class="nav-right">
-        <text v-if="!isLoggedIn" @click="goLogin">登录</text>
-        <text v-else class="user-status" @click="handleLogout">···{{ maskedPhone }}</text>
+        <text v-if="!isLoggedIn" class="nav-btn" @click="goLogin">登录</text>
+        <text v-else class="user-status" @click="handleLogout">{{ maskedPhone }}</text>
       </view>
     </view>
 
@@ -35,12 +35,13 @@
         <view class="jieqi-copy">{{ jieqiInfo.copy }}</view>
       </view>
       <view v-else class="jieqi-countdown">
-        <view class="jieqi-countdown-left">
-          <view class="jieqi-next-label">距</view>
-          <view class="jieqi-next-name">{{ jieqiInfo.name }}</view>
-          <view class="jieqi-next-label">还有</view>
+        <view class="jieqi-countdown-main">
+          <text class="jieqi-label-sm">距</text>
+          <text class="jieqi-name-em">{{ jieqiInfo.name }}</text>
+          <text class="jieqi-label-sm">还有</text>
+          <text class="jieqi-days-em">{{ jieqiInfo.days }}</text>
+          <text class="jieqi-label-sm">天</text>
         </view>
-        <view class="jieqi-days">{{ jieqiInfo.days }}<text class="jieqi-days-unit">天</text></view>
         <view class="jieqi-countdown-copy">{{ jieqiInfo.copy }}</view>
       </view>
     </view>
@@ -75,10 +76,12 @@
         <view class="target-card" v-for="target in filteredAvailable" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
             <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
+            <view class="card-type-badge">{{ target.type?.toLowerCase() === 'tea' ? '茶树' : '植物' }}</view>
           </view>
           <view v-else class="card-img" :class="target.type?.toLowerCase()">
             <text v-if="target.type?.toLowerCase() === 'tea'" class="emoji">🍃</text>
             <text v-else class="emoji">🌿</text>
+            <view class="card-type-badge">{{ target.type?.toLowerCase() === 'tea' ? '茶树' : '植物' }}</view>
           </view>
           <view class="card-body">
             <view class="card-name">{{ target.name }}</view>
@@ -104,10 +107,12 @@
         <view class="target-card adopted-card" v-for="target in adoptedTargets" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
             <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
+            <view class="card-type-badge adopted">{{ target.type?.toLowerCase() === 'tea' ? '茶树' : '植物' }}</view>
           </view>
           <view v-else class="card-img" :class="target.type?.toLowerCase()">
             <text v-if="target.type?.toLowerCase() === 'tea'" class="emoji">🍃</text>
             <text v-else class="emoji">🌿</text>
+            <view class="card-type-badge adopted">{{ target.type?.toLowerCase() === 'tea' ? '茶树' : '植物' }}</view>
           </view>
           <view class="card-body">
             <view class="card-name">{{ target.name }}</view>
@@ -439,11 +444,14 @@ export default {
 
 .plaza-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 24rpx 32rpx; background: #2d5a27; color: white;
+  padding: 12rpx 32rpx 16rpx;
+  padding-top: calc(12rpx + var(--status-bar-height, 0px));
+  background: #2d5a27; color: white;
 }
-.logo { font-size: 32rpx; font-weight: bold; }
-.nav-right text { font-size: 28rpx; cursor: pointer; }
-.user-status { color: rgba(255,255,255,0.8); }
+.logo { font-size: 30rpx; font-weight: 700; letter-spacing: 0.5px; }
+.nav-btn { font-size: 26rpx; background: rgba(255,255,255,0.18); padding: 8rpx 24rpx; border-radius: 999rpx; }
+.nav-right text { font-size: 26rpx; cursor: pointer; }
+.user-status { font-size: 24rpx; color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.12); padding: 6rpx 20rpx; border-radius: 999rpx; }
 
 .banner-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; display: block; }
 .hero-banner { position: relative; overflow: hidden;
@@ -458,8 +466,8 @@ export default {
 .banner-title { font-size: 22px; font-weight: bold; line-height: 1.4; }
 .banner-sub { font-size: 14px; opacity: 0.85; margin-top: 12rpx; }
 
-.section { padding: 40rpx 0; }
-.section-header { display: flex; align-items: center; justify-content: space-between; padding: 24rpx 30rpx 12rpx; }
+.section { padding: 20rpx 0 40rpx; }
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 30rpx 16rpx; }
 .section-title {
   font-size: 17px; font-weight: 600; color: #2d5a27;
 }
@@ -500,6 +508,18 @@ export default {
 .card-status.adopted { background: #f5f5f5; color: #999; }
 .card-waiting { font-size: 20rpx; color: #e8a020; margin-top: 8rpx; }
 .adopted-card .card-img { filter: saturate(0.6); }
+
+.card-type-badge {
+  position: absolute; top: 12rpx; right: 12rpx;
+  font-size: 18rpx; color: white;
+  background: rgba(0,0,0,0.38);
+  backdrop-filter: blur(4px);
+  padding: 4rpx 12rpx; border-radius: 999rpx;
+  font-weight: 500; letter-spacing: 0.5px;
+}
+.card-type-badge.adopted {
+  background: rgba(0,0,0,0.25);
+}
 .plaza-empty { padding: 80rpx 40rpx; text-align: center; }
 .plaza-empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 .plaza-empty-title { font-size: 32rpx; font-weight: 500; color: #444; margin-bottom: 12rpx; }
@@ -537,14 +557,16 @@ export default {
 .jieqi-copy { font-size: 26rpx; color: rgba(255,255,255,0.85); margin-top: 8rpx; line-height: 1.6; }
 .jieqi-countdown {
   background: #f6faf5; border: 1rpx solid #d4e8d0;
-  padding: 28rpx 36rpx; display: flex; align-items: center; gap: 20rpx;
+  padding: 28rpx 36rpx;
 }
-.jieqi-countdown-left { display: flex; align-items: center; gap: 8rpx; flex-shrink: 0; }
-.jieqi-next-label { font-size: 24rpx; color: #999; }
-.jieqi-next-name { font-size: 30rpx; font-weight: bold; color: #2d5a27; }
-.jieqi-days { font-size: 48rpx; font-weight: bold; color: #2d5a27; flex-shrink: 0; line-height: 1; }
-.jieqi-days-unit { font-size: 22rpx; font-weight: normal; margin-left: 4rpx; }
-.jieqi-countdown-copy { font-size: 24rpx; color: #888; line-height: 1.6; flex: 1; }
+.jieqi-countdown-main {
+  display: flex; align-items: baseline; gap: 6rpx; flex-wrap: nowrap;
+  margin-bottom: 10rpx;
+}
+.jieqi-label-sm { font-size: 24rpx; color: #888; }
+.jieqi-name-em { font-size: 32rpx; font-weight: 700; color: #2d5a27; }
+.jieqi-days-em { font-size: 44rpx; font-weight: 800; color: #2d5a27; line-height: 1; }
+.jieqi-countdown-copy { font-size: 23rpx; color: #999; line-height: 1.6; }
 .log-card { background: white; border-radius: 16rpx; padding: 32rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
 .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .log-tag { font-size: 22rpx; color: white; background: #2d5a27; padding: 4rpx 16rpx; border-radius: 999rpx; }

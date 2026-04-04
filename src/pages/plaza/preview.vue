@@ -26,44 +26,75 @@
     </view>
 
     <view class="sensor-card">
-      <view class="sensor-title">🌿 农庄实况</view>
+      <view class="sensor-header">
+        <view class="sensor-title">农庄实况</view>
+        <view class="sensor-live" v-if="sensorData">
+          <view class="live-dot"></view>
+          <text class="live-text">{{ sensorUpdateText }}</text>
+        </view>
+      </view>
       <view v-if="sensorData" class="sensor-grid">
         <view class="sensor-item">
-          <view class="sensor-value">{{ sensorData.temperature !== null ? sensorData.temperature + '°C' : '--' }}</view>
+          <view class="sensor-icon">🌡</view>
+          <view class="sensor-value-row">
+            <text class="sensor-value">{{ sensorData.temperature !== null ? sensorData.temperature : '--' }}</text>
+            <text class="sensor-unit">°C</text>
+          </view>
           <view class="sensor-label">温度</view>
+          <view class="sensor-bar-wrap">
+            <view class="sensor-bar-fill" :class="tempTag.cls" :style="{ width: tempPercent + '%' }"></view>
+          </view>
           <view class="sensor-tag" :class="tempTag.cls">{{ tempTag.text }}</view>
         </view>
+        <view class="sensor-sep"></view>
         <view class="sensor-item">
-          <view class="sensor-value">{{ sensorData.humidity !== null ? sensorData.humidity + '%' : '--' }}</view>
+          <view class="sensor-icon">💧</view>
+          <view class="sensor-value-row">
+            <text class="sensor-value">{{ sensorData.humidity !== null ? sensorData.humidity : '--' }}</text>
+            <text class="sensor-unit">%</text>
+          </view>
           <view class="sensor-label">湿度</view>
+          <view class="sensor-bar-wrap">
+            <view class="sensor-bar-fill" :class="humidTag.cls" :style="{ width: humidPercent + '%' }"></view>
+          </view>
           <view class="sensor-tag" :class="humidTag.cls">{{ humidTag.text }}</view>
         </view>
+        <view class="sensor-sep"></view>
         <view class="sensor-item">
-          <view class="sensor-value">{{ sensorData.soil_moisture !== null ? sensorData.soil_moisture + '%' : '--' }}</view>
+          <view class="sensor-icon">🌱</view>
+          <view class="sensor-value-row">
+            <text class="sensor-value">{{ sensorData.soil_moisture !== null ? sensorData.soil_moisture : '--' }}</text>
+            <text class="sensor-unit">%</text>
+          </view>
           <view class="sensor-label">土壤湿度</view>
+          <view class="sensor-bar-wrap">
+            <view class="sensor-bar-fill" :class="soilTag.cls" :style="{ width: soilPercent + '%' }"></view>
+          </view>
           <view class="sensor-tag" :class="soilTag.cls">{{ soilTag.text }}</view>
         </view>
       </view>
-      <view v-else class="sensor-empty">暂无数据</view>
-      <view class="sensor-update" v-if="sensorData">更新于 {{ sensorUpdateText }}</view>
+      <view v-else class="sensor-empty">暂无传感器数据</view>
     </view>
 
     <view class="chart-card">
       <view class="chart-header">
-        <view class="chart-title">📈 环境趋势</view>
+        <view class="chart-title-wrap">
+          <view class="chart-title-accent"></view>
+          <view class="chart-title">环境趋势</view>
+        </view>
         <view class="chart-tabs">
-          <view class="chart-tab" :class="{ active: chartHours === 24 }" @click="switchChart(24)">24小时</view>
+          <view class="chart-tab" :class="{ active: chartHours === 24 }" @click="switchChart(24)">24h</view>
           <view class="chart-tab" :class="{ active: chartHours === 168 }" @click="switchChart(168)">7天</view>
           <view class="chart-tab" :class="{ active: chartHours === 720 }" @click="switchChart(720)">30天</view>
         </view>
       </view>
       <view class="chart-legend">
-        <view class="legend-item"><view class="legend-dot temp"></view>温度(°C)</view>
-        <view class="legend-item"><view class="legend-dot humi"></view>湿度(%)</view>
+        <view class="legend-item"><view class="legend-line temp"></view><text>温度 °C</text></view>
+        <view class="legend-item"><view class="legend-line humi"></view><text>湿度 %</text></view>
       </view>
       <canvas canvas-id="sensorChart" id="sensorChart" class="chart-canvas"></canvas>
       <view v-if="chartLoading" class="chart-loading">加载中...</view>
-      <view v-if="!chartLoading && chartEmpty" class="chart-loading">暂无数据</view>
+      <view v-if="!chartLoading && chartEmpty" class="chart-loading">暂无历史数据</view>
     </view>
 
     <view class="plan-section" v-if="target && target.current_status === 'active'">
@@ -232,6 +263,21 @@ export default {
       const diffHour = Math.floor(diffMin / 60)
       if (diffHour < 24) return diffHour + '小时前'
       return Math.floor(diffHour / 24) + '天前'
+    },
+    tempPercent() {
+      const v = this.sensorData && this.sensorData.temperature
+      if (v === null || v === undefined) return 0
+      return Math.min(100, Math.max(0, Math.round(v / 40 * 100)))
+    },
+    humidPercent() {
+      const v = this.sensorData && this.sensorData.humidity
+      if (v === null || v === undefined) return 0
+      return Math.min(100, Math.max(0, Math.round(v)))
+    },
+    soilPercent() {
+      const v = this.sensorData && this.sensorData.soil_moisture
+      if (v === null || v === undefined) return 0
+      return Math.min(100, Math.max(0, Math.round(v)))
     }
   },
 
@@ -445,8 +491,8 @@ export default {
           new UCharts({
             type: 'line',
             context: ctx,
-            width: uni.upx2px(690),
-            height: uni.upx2px(400),
+            width: uni.upx2px(618),
+            height: uni.upx2px(380),
             categories: labels,
             series: [
               {
@@ -613,31 +659,64 @@ export default {
 .cta-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 30rpx; }
 .cta-btn-disabled { background: #ccc; color: #999; }
 
+/* ── 农庄实况 ── */
 .sensor-card { margin: 24rpx 30rpx; background: white; border-radius: 24rpx; padding: 36rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
-.sensor-title { font-size: 28rpx; font-weight: 600; color: #2d5a27; margin-bottom: 28rpx; }
-.sensor-grid { display: flex; justify-content: space-between; }
-.sensor-item { flex: 1; text-align: center; }
-.sensor-value { font-size: 36rpx; font-weight: bold; color: #333; }
-.sensor-label { font-size: 22rpx; color: #999; margin-top: 6rpx; }
-.sensor-tag { display: inline-block; margin-top: 10rpx; font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 999rpx; }
+.sensor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32rpx; }
+.sensor-title { font-size: 30rpx; font-weight: 600; color: #222; }
+.sensor-live { display: flex; align-items: center; gap: 8rpx; }
+.live-dot {
+  width: 12rpx; height: 12rpx; border-radius: 50%; background: #2d5a27;
+  box-shadow: 0 0 0 4rpx rgba(45,90,39,0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4rpx rgba(45,90,39,0.2); }
+  50% { box-shadow: 0 0 0 8rpx rgba(45,90,39,0.08); }
+}
+.live-text { font-size: 22rpx; color: #aaa; }
+
+.sensor-grid { display: flex; align-items: stretch; }
+.sensor-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0; }
+.sensor-sep { width: 1rpx; background: #f0f0f0; margin: 0 4rpx; align-self: stretch; }
+
+.sensor-icon { font-size: 36rpx; margin-bottom: 12rpx; }
+.sensor-value-row { display: flex; align-items: baseline; gap: 2rpx; }
+.sensor-value { font-size: 40rpx; font-weight: 700; color: #1a1a1a; line-height: 1; }
+.sensor-unit { font-size: 20rpx; color: #999; }
+.sensor-label { font-size: 20rpx; color: #bbb; margin-top: 6rpx; margin-bottom: 14rpx; }
+
+.sensor-bar-wrap {
+  width: 80%; height: 6rpx; background: #f0f0f0; border-radius: 999rpx;
+  overflow: hidden; margin-bottom: 12rpx;
+}
+.sensor-bar-fill {
+  height: 100%; border-radius: 999rpx; transition: width 0.6s ease;
+}
+.sensor-bar-fill.tag-green { background: linear-gradient(90deg, #5a8f4a, #2d5a27); }
+.sensor-bar-fill.tag-orange { background: linear-gradient(90deg, #f0a030, #e67e22); }
+.sensor-bar-fill.tag-blue { background: linear-gradient(90deg, #5b9bd5, #1976d2); }
+
+.sensor-tag { display: inline-block; font-size: 19rpx; padding: 4rpx 14rpx; border-radius: 999rpx; }
 .tag-green { background: #e8f5e2; color: #2d5a27; }
 .tag-orange { background: #fff3e0; color: #e67e22; }
 .tag-blue { background: #e3f2fd; color: #1976d2; }
 .sensor-empty { text-align: center; color: #ccc; font-size: 26rpx; padding: 20rpx 0; }
-.sensor-update { font-size: 22rpx; color: #bbb; text-align: right; margin-top: 20rpx; }
 
-.chart-card { margin: 24rpx 30rpx; background: white; border-radius: 24rpx; padding: 36rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
+/* ── 环境趋势 ── */
+.chart-card { margin: 24rpx 30rpx; background: white; border-radius: 24rpx; padding: 36rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); overflow: hidden; }
 .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
-.chart-title { font-size: 28rpx; font-weight: 600; color: #2d5a27; }
-.chart-tabs { display: flex; gap: 12rpx; }
-.chart-tab { font-size: 22rpx; color: #999; padding: 8rpx 20rpx; border-radius: 999rpx; background: #f5f5f0; }
+.chart-title-wrap { display: flex; align-items: center; gap: 12rpx; }
+.chart-title-accent { width: 6rpx; height: 30rpx; background: #2d5a27; border-radius: 999rpx; }
+.chart-title { font-size: 30rpx; font-weight: 600; color: #222; }
+.chart-tabs { display: flex; gap: 8rpx; }
+.chart-tab { font-size: 21rpx; color: #999; padding: 8rpx 18rpx; border-radius: 999rpx; background: #f5f5f0; }
 .chart-tab.active { background: #2d5a27; color: white; }
-.chart-legend { display: flex; gap: 24rpx; margin-bottom: 16rpx; }
-.legend-item { display: flex; align-items: center; gap: 8rpx; font-size: 22rpx; color: #666; }
-.legend-dot { width: 16rpx; height: 16rpx; border-radius: 50%; }
-.legend-dot.temp { background: #2d5a27; }
-.legend-dot.humi { background: #5b9bd5; }
-.chart-canvas { width: 690rpx; height: 400rpx; }
+.chart-legend { display: flex; gap: 28rpx; margin-bottom: 20rpx; padding-left: 4rpx; }
+.legend-item { display: flex; align-items: center; gap: 10rpx; font-size: 22rpx; color: #888; }
+.legend-line { width: 32rpx; height: 4rpx; border-radius: 2rpx; }
+.legend-line.temp { background: #2d5a27; }
+.legend-line.humi { background: #5b9bd5; }
+.chart-canvas { width: 618rpx; height: 380rpx; display: block; }
 .chart-loading { text-align: center; color: #ccc; font-size: 26rpx; padding: 60rpx 0; }
 
 .poster-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
