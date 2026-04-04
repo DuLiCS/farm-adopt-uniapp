@@ -5,7 +5,7 @@
       <view class="logo">🌿 山南广场</view>
       <view class="nav-right">
         <text v-if="!isLoggedIn" @click="goLogin">登录</text>
-        <text v-else class="user-status" @click="handleLogout">已登录</text>
+        <text v-else class="user-status" @click="handleLogout">···{{ maskedPhone }}</text>
       </view>
     </view>
 
@@ -67,9 +67,16 @@
     </view>
 
     <!-- 山南对象列表 -->
-    <view v-if="!loading" class="section">
-      <view class="section-title">还没有主人</view>
-      <view class="target-grid">
+    <view class="section" v-if="availableTargets.length > 0">
+      <view class="section-header">
+        <view class="section-title">等待有缘人</view>
+        <view class="filter-tabs">
+          <view class="filter-tab" :class="{ active: filterType === 'all' }" @click="filterType = 'all'">全部</view>
+          <view class="filter-tab" :class="{ active: filterType === 'tea' }" @click="filterType = 'tea'">🍃 茶树</view>
+          <view class="filter-tab" :class="{ active: filterType === 'plant' }" @click="filterType = 'plant'">🌿 植物</view>
+        </view>
+      </view>
+      <view class="target-grid" v-if="filteredAvailable.length > 0">
         <view class="target-card" v-for="target in filteredAvailable" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
             <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
@@ -86,12 +93,20 @@
           </view>
         </view>
       </view>
+      <view class="filter-empty" v-else>
+        <text>这个分类暂时没有等待认养的对象</text>
+      </view>
+    </view>
+
+    <view class="section all-adopted" v-else-if="adoptedTargets.length > 0">
+      <view class="all-adopted-text">山南每一棵都有人守候了 🌿</view>
+      <view class="all-adopted-sub">等待续约或新的对象上架</view>
     </view>
 
     <view class="section" v-if="!loading && adoptedTargets.length > 0">
       <view class="section-title">已有人在守候</view>
       <view class="target-grid">
-        <view class="target-card" v-for="target in adoptedTargets" :key="target.id" @click="goPreview(target.id)">
+        <view class="target-card adopted-card" v-for="target in adoptedTargets" :key="target.id" @click="goPreview(target.id)">
           <view class="card-img" v-if="target.cover_image" :class="target.type?.toLowerCase()">
             <image :src="getFullImageUrl(target.cover_image)" mode="aspectFill" class="cover-image" lazy-load />
           </view>
@@ -102,10 +117,17 @@
           <view class="card-body">
             <view class="card-name">{{ target.name }}</view>
             <view class="card-location">{{ target.location_desc }}</view>
-            <view class="card-status adopted">已加入</view>
+            <view class="card-status adopted">守候中</view>
           </view>
         </view>
       </view>
+    </view>
+
+    <!-- 完全无对象时的空状态 -->
+    <view class="plaza-empty" v-if="targetsLoaded && availableTargets.length === 0 && adoptedTargets.length === 0">
+      <view class="plaza-empty-icon">🌱</view>
+      <view class="plaza-empty-title">山南正在准备新的对象</view>
+      <view class="plaza-empty-sub">还没有上架认养的茶树或植物<br>等等，快了</view>
     </view>
 
     <!-- 农庄日志 -->
@@ -210,6 +232,9 @@ export default {
       availableTargets: [],
       adoptedTargets: [],
       isLoggedIn: false,
+      phone: '',
+      filterType: 'all',
+      targetsLoaded: false,
       sensorData: null,
       latestLog: null,
       activeFilter: 'all',
@@ -224,11 +249,12 @@ export default {
   onShow() {
     const token = uni.getStorageSync('token')
     this.isLoggedIn = !!token
+    this.phone = uni.getStorageSync('phone') || ''
+    this.loadTargets()
   },
 
   onLoad() {
     this.loadSettings()
-    this.loadTargets()
     this.loadSensorData()
     this.loadLatestLog()
   },
@@ -263,6 +289,13 @@ export default {
       const diffDays = Math.ceil((new Date(next) - now) / 86400000)
       const name = JIEQI[next]
       return { type: 'countdown', name, days: diffDays, copy: JIEQI_COPY[name] || '' }
+    maskedPhone() {
+      if (!this.phone || this.phone.length < 8) return ''
+      return this.phone.slice(-4)
+    },
+    filteredAvailable() {
+      if (this.filterType === 'all') return this.availableTargets
+      return this.availableTargets.filter(t => (t.type || '').toLowerCase() === this.filterType)
     },
     sensorUpdateText() {
       if (!this.sensorData || !this.sensorData.recorded_at) return ''
@@ -330,10 +363,12 @@ export default {
           console.warn('getPlazaTargets 返回非数组:', targets)
           this.availableTargets = []
           this.adoptedTargets = []
+          this.targetsLoaded = true
           return
         }
         this.availableTargets = targets.filter(t => t.current_status === 'active')
         this.adoptedTargets = targets.filter(t => t.current_status && t.current_status !== 'active')
+        this.targetsLoaded = true
       } catch (e) {
         console.error('加载失败:', e)
         uni.showToast({ title: '信号不太好，稍后再试', icon: 'none' })
@@ -341,6 +376,7 @@ export default {
         this.adoptedTargets = []
       } finally {
         this.loading = false
+        this.targetsLoaded = true
       }
     },
 
@@ -432,10 +468,18 @@ export default {
 .banner-sub { font-size: 14px; opacity: 0.85; margin-top: 12rpx; }
 
 .section { padding: 40rpx 0; }
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 24rpx 30rpx 12rpx; }
 .section-title {
   font-size: 17px; font-weight: 600; color: #2d5a27;
-  margin-bottom: 24rpx; padding: 24rpx 30rpx 12rpx;
 }
+.filter-tabs { display: flex; gap: 12rpx; }
+.filter-tab {
+  font-size: 22rpx; color: #999; padding: 8rpx 18rpx;
+  border-radius: 999rpx; background: #f0f0ec;
+  transition: background 0.2s, color 0.2s;
+}
+.filter-tab.active { background: #2d5a27; color: white; }
+.filter-empty { text-align: center; color: #bbb; font-size: 26rpx; padding: 60rpx 0; }
 
 .target-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; padding: 0 32rpx;
@@ -464,6 +508,14 @@ export default {
 .card-status.available { background: #e8f5e9; color: #2d5a27; }
 .card-status.adopted { background: #f5f5f5; color: #999; }
 .card-waiting { font-size: 20rpx; color: #e8a020; margin-top: 8rpx; }
+.adopted-card .card-img { filter: saturate(0.6); }
+.plaza-empty { padding: 80rpx 40rpx; text-align: center; }
+.plaza-empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
+.plaza-empty-title { font-size: 32rpx; font-weight: 500; color: #444; margin-bottom: 12rpx; }
+.plaza-empty-sub { font-size: 26rpx; color: #aaa; line-height: 1.8; }
+.all-adopted { padding: 48rpx 32rpx 24rpx; text-align: center; }
+.all-adopted-text { font-size: 30rpx; color: #2d5a27; font-weight: 500; }
+.all-adopted-sub { font-size: 24rpx; color: #aaa; margin-top: 10rpx; }
 
 .philosophy-section {
   padding: 60rpx 32rpx; text-align: center; background: #fff; margin-top: 40rpx;

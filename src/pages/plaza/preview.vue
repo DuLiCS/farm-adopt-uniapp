@@ -521,7 +521,7 @@ export default {
       try {
         uni.showLoading({ title: '创建订单中...' })
         const res = await uni.request({
-          url: SERVER_URL + '/orders/',
+          url: SERVER_URL + '/api/orders/',
           method: 'POST',
           header: { 'Authorization': 'Bearer ' + (uni.getStorageSync('token') || '') },
           data: {

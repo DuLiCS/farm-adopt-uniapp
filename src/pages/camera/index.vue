@@ -1,6 +1,14 @@
 <template>
   <view class="container">
 
+    <view class="nav-bar">
+      <view class="nav-back" @click="goBack">
+        <text class="nav-back-icon">‹</text>
+        <text class="nav-back-text">返回</text>
+      </view>
+      <view class="nav-title">探望</view>
+    </view>
+
     <view class="latest-section" v-if="latestPhoto">
       <image class="latest-img" :src="serverUrl + latestPhoto.url" mode="aspectFill"/>
       <view class="latest-overlay">
@@ -32,7 +40,7 @@
       <view v-if="loading" class="tip">加载中...</view>
       <view v-else-if="processedDates.length === 0" class="tip">暂无照片记录</view>
       <view v-else>
-        <view class="date-group" v-for="group in processedDates" :key="group.date">
+        <view class="date-group" v-for="group in visibleDates" :key="group.date">
 
           <view class="date-header" @click="toggleDay(group.date)">
             <view class="date-left">
@@ -73,6 +81,9 @@
             </scroll-view>
           </view>
 
+        </view>
+        <view v-if="hasMore" class="load-more" @click="loadMore">
+          <text class="load-more-text">查看更早的记录（还有 {{ processedDates.length - visibleCount }} 天）</text>
         </view>
       </view>
     </view>
@@ -180,7 +191,8 @@ export default {
       dates: [],
       loading: true,
       activePhoto: null,
-      expandedDays: {}
+      expandedDays: {},
+      visibleCount: 7
     }
   },
 
@@ -208,6 +220,12 @@ export default {
       const pad = n => String(n).padStart(2, '0')
       const key = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`
       return JIEQI[key] || null
+    },
+    visibleDates() {
+      return this.processedDates.slice(0, this.visibleCount)
+    },
+    hasMore() {
+      return this.visibleCount < this.processedDates.length
     }
   },
 
@@ -239,6 +257,12 @@ export default {
     toggleDay(date) {
       this.expandedDays = { ...this.expandedDays, [date]: !this.expandedDays[date] }
     },
+    loadMore() {
+      this.visibleCount += 7
+    },
+    goBack() {
+      uni.navigateBack()
+    },
     openPhoto(photo) {
       this.activePhoto = photo
     },
@@ -262,6 +286,14 @@ export default {
 
 <style scoped>
 .container { min-height: 100vh; background: #f5f5f0; padding-bottom: 60rpx; }
+.nav-bar {
+  display: flex; align-items: center; padding: 20rpx 30rpx;
+  background: #1a3d16; position: sticky; top: 0; z-index: 10;
+}
+.nav-back { display: flex; align-items: center; gap: 4rpx; flex: 1; cursor: pointer; }
+.nav-back-icon { font-size: 48rpx; color: rgba(255,255,255,0.9); line-height: 1; }
+.nav-back-text { font-size: 28rpx; color: rgba(255,255,255,0.85); }
+.nav-title { font-size: 30rpx; font-weight: 600; color: white; position: absolute; left: 50%; transform: translateX(-50%); }
 .latest-section { position: relative; height: 480rpx; overflow: hidden; background: #1a3d16; }
 .latest-img { width: 100%; height: 100%; }
 .latest-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 24rpx 30rpx; background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
@@ -297,4 +329,6 @@ export default {
 .viewer-info { margin-top: 40rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
 .viewer-datetime { font-size: 26rpx; color: rgba(255,255,255,0.6); }
 .viewer-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 18rpx 56rpx; font-size: 28rpx; }
+.load-more { text-align: center; padding: 32rpx 0 16rpx; }
+.load-more-text { font-size: 26rpx; color: #2d5a27; border-bottom: 1rpx solid currentColor; padding-bottom: 2rpx; }
 </style>
