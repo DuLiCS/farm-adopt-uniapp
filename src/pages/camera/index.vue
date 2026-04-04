@@ -26,7 +26,7 @@
       <view v-if="loading" class="tip">加载中...</view>
       <view v-else-if="processedDates.length === 0" class="tip">暂无照片记录</view>
       <view v-else>
-        <view class="date-group" v-for="group in processedDates" :key="group.date">
+        <view class="date-group" v-for="group in visibleDates" :key="group.date">
 
           <view class="date-header" @click="toggleDay(group.date)">
             <view class="date-left">
@@ -67,6 +67,9 @@
             </scroll-view>
           </view>
 
+        </view>
+        <view v-if="hasMore" class="load-more" @click="loadMore">
+          <text class="load-more-text">查看更早的记录（还有 {{ processedDates.length - visibleCount }} 天）</text>
         </view>
       </view>
     </view>
@@ -150,7 +153,8 @@ export default {
       dates: [],
       loading: true,
       activePhoto: null,
-      expandedDays: {}
+      expandedDays: {},
+      visibleCount: 7
     }
   },
 
@@ -167,6 +171,12 @@ export default {
         jieqi: JIEQI[group.date] || null,
         keyFrames: pickKeyFrames(group.photos)
       }))
+    },
+    visibleDates() {
+      return this.processedDates.slice(0, this.visibleCount)
+    },
+    hasMore() {
+      return this.visibleCount < this.processedDates.length
     }
   },
 
@@ -190,6 +200,9 @@ export default {
     },
     toggleDay(date) {
       this.expandedDays = { ...this.expandedDays, [date]: !this.expandedDays[date] }
+    },
+    loadMore() {
+      this.visibleCount += 7
     },
     goBack() {
       uni.navigateBack()
@@ -254,4 +267,6 @@ export default {
 .viewer-info { margin-top: 40rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
 .viewer-datetime { font-size: 26rpx; color: rgba(255,255,255,0.6); }
 .viewer-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 18rpx 56rpx; font-size: 28rpx; }
+.load-more { text-align: center; padding: 32rpx 0 16rpx; }
+.load-more-text { font-size: 26rpx; color: #2d5a27; border-bottom: 1rpx solid currentColor; padding-bottom: 2rpx; }
 </style>

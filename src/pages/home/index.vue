@@ -193,7 +193,6 @@ export default {
  drawPoster() {
  const order = this.posterOrder
  if (!order) return
- setTimeout(() => {
  const uniEl = document.getElementById('homePoster')
  if (!uniEl) return
  const el = uniEl.querySelector('canvas.uni-canvas-canvas') || uniEl
@@ -241,7 +240,6 @@ export default {
  c.font = Math.round(W * 0.034) + 'px sans-serif'
  c.fillStyle = 'rgba(255,255,255,0.4)'
  c.fillText('shannanji.com', W / 2, H * 0.94)
- }, 100)
  },
  savePoster() {
  const uniEl = document.getElementById('homePoster')
