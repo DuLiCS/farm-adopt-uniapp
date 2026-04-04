@@ -435,56 +435,76 @@ export default {
           url: SERVER_URL + '/api/sensor/history?device_id=esp32-farm-01&hours=' + this.chartHours,
           method: 'GET'
         })
-        const data = res.data && res.data.data ? res.data.data : []
-        if (data.length === 0) {
+        const raw = res.data && res.data.data ? res.data.data : []
+        if (raw.length === 0) {
           this.chartEmpty = true
           this.chartLoading = false
           return
         }
+
+        // 通用聚合辅助
+        const avg = arr => arr.length
+          ? parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1))
+          : null
+
         let labels, temps, humis
 
         if (this.chartHours <= 24) {
-          // 24h：按小时聚合，最多24个点
+          // ── 24h：按小时聚合（最多24点），刻度每6小时显示一次
           const buckets = {}
-          data.forEach(d => {
+          raw.forEach(d => {
             const dt = new Date(d.recorded_at + 'Z')
-            const key = dt.getHours().toString().padStart(2,'0') + 'h'
+            const h = dt.getHours()
+            const key = h.toString().padStart(2, '0')
             if (!buckets[key]) buckets[key] = { temps: [], humis: [] }
             if (d.temperature !== null) buckets[key].temps.push(d.temperature)
             if (d.humidity !== null) buckets[key].humis.push(d.humidity)
           })
-          labels = Object.keys(buckets)
-          temps = labels.map(k => buckets[k].temps.length ? parseFloat((buckets[k].temps.reduce((a,b)=>a+b,0)/buckets[k].temps.length).toFixed(1)) : null)
-          humis = labels.map(k => buckets[k].humis.length ? parseFloat((buckets[k].humis.reduce((a,b)=>a+b,0)/buckets[k].humis.length).toFixed(1)) : null)
+          const sorted = Object.keys(buckets).sort()
+          labels = sorted.map(k => parseInt(k) % 6 === 0 ? k + ':00' : '')
+          temps  = sorted.map(k => avg(buckets[k].temps))
+          humis  = sorted.map(k => avg(buckets[k].humis))
 
         } else if (this.chartHours <= 168) {
-          // 7天：按小时聚合
+          // ── 7天：按日聚合（7点，不再按小时 → 告别168点密集图）
           const buckets = {}
-          data.forEach(d => {
+          raw.forEach(d => {
             const dt = new Date(d.recorded_at + 'Z')
-            const key = (dt.getMonth()+1) + '/' + dt.getDate() + ' ' + dt.getHours().toString().padStart(2,'0') + 'h'
-            if (!buckets[key]) buckets[key] = { temps: [], humis: [] }
-            if (d.temperature !== null) buckets[key].temps.push(d.temperature)
-            if (d.humidity !== null) buckets[key].humis.push(d.humidity)
+            const dateKey = dt.toISOString().substring(0, 10)           // 排序用
+            const label   = (dt.getMonth() + 1) + '/' + dt.getDate()   // 显示用
+            if (!buckets[dateKey]) buckets[dateKey] = { temps: [], humis: [], label }
+            if (d.temperature !== null) buckets[dateKey].temps.push(d.temperature)
+            if (d.humidity !== null) buckets[dateKey].humis.push(d.humidity)
           })
-          labels = Object.keys(buckets)
-          temps = labels.map(k => buckets[k].temps.length ? parseFloat((buckets[k].temps.reduce((a,b)=>a+b,0)/buckets[k].temps.length).toFixed(1)) : null)
-          humis = labels.map(k => buckets[k].humis.length ? parseFloat((buckets[k].humis.reduce((a,b)=>a+b,0)/buckets[k].humis.length).toFixed(1)) : null)
+          const sorted = Object.keys(buckets).sort()
+          labels = sorted.map(k => buckets[k].label)
+          temps  = sorted.map(k => avg(buckets[k].temps))
+          humis  = sorted.map(k => avg(buckets[k].humis))
 
         } else {
-          // 30天：按天聚合
+          // ── 30天：按日聚合，刻度每5天显示一次
           const buckets = {}
-          data.forEach(d => {
+          raw.forEach(d => {
             const dt = new Date(d.recorded_at + 'Z')
-            const key = (dt.getMonth()+1) + '/' + dt.getDate()
-            if (!buckets[key]) buckets[key] = { temps: [], humis: [] }
-            if (d.temperature !== null) buckets[key].temps.push(d.temperature)
-            if (d.humidity !== null) buckets[key].humis.push(d.humidity)
+            const dateKey = dt.toISOString().substring(0, 10)
+            const label   = (dt.getMonth() + 1) + '/' + dt.getDate()
+            if (!buckets[dateKey]) buckets[dateKey] = { temps: [], humis: [], label }
+            if (d.temperature !== null) buckets[dateKey].temps.push(d.temperature)
+            if (d.humidity !== null) buckets[dateKey].humis.push(d.humidity)
           })
-          labels = Object.keys(buckets)
-          temps = labels.map(k => buckets[k].temps.length ? parseFloat((buckets[k].temps.reduce((a,b)=>a+b,0)/buckets[k].temps.length).toFixed(1)) : null)
-          humis = labels.map(k => buckets[k].humis.length ? parseFloat((buckets[k].humis.reduce((a,b)=>a+b,0)/buckets[k].humis.length).toFixed(1)) : null)
+          const sorted = Object.keys(buckets).sort()
+          labels = sorted.map((k, i) =>
+            (i % 5 === 0 || i === sorted.length - 1) ? buckets[k].label : ''
+          )
+          temps = sorted.map(k => avg(buckets[k].temps))
+          humis = sorted.map(k => avg(buckets[k].humis))
         }
+
+        // 计算两条线的共同 Y 轴范围，确保两线都可见
+        const allVals = [...temps, ...humis].filter(v => v !== null)
+        const yMin = allVals.length ? Math.floor(Math.min(...allVals)) - 4 : 0
+        const yMax = allVals.length ? Math.ceil(Math.max(...allVals))  + 4 : 100
+
         this.chartLoading = false
         this.$nextTick(() => {
           const ctx = uni.createCanvasContext('sensorChart', this)
@@ -492,7 +512,7 @@ export default {
             type: 'line',
             context: ctx,
             width: uni.upx2px(618),
-            height: uni.upx2px(380),
+            height: uni.upx2px(420),
             categories: labels,
             series: [
               {
@@ -500,22 +520,25 @@ export default {
                 data: temps,
                 color: '#2d5a27',
                 filled: true,
-                fillOpacity: 0.15
+                fillOpacity: 0.12,
+                lineWidth: 2
               },
               {
                 name: '湿度',
                 data: humis,
                 color: '#5b9bd5',
                 filled: true,
-                fillOpacity: 0.1
+                fillOpacity: 0.08,
+                lineWidth: 2
               }
             ],
             xAxis: { disableGrid: true, fontSize: 9 },
-            yAxis: { fontSize: 10, gridColor: '#f0f0f0' },
+            yAxis: { min: yMin, max: yMax, fontSize: 10, gridColor: '#f5f5f5', splitNumber: 4 },
             legend: { show: false },
             background: '#ffffff',
-            padding: [20, 20, 20, 20],
+            padding: [16, 16, 16, 16],
             dataLabel: false,
+            dataPointShape: false,
             animation: true
           })
         })
@@ -716,7 +739,7 @@ export default {
 .legend-line { width: 32rpx; height: 4rpx; border-radius: 2rpx; }
 .legend-line.temp { background: #2d5a27; }
 .legend-line.humi { background: #5b9bd5; }
-.chart-canvas { width: 618rpx; height: 380rpx; display: block; }
+.chart-canvas { width: 618rpx; height: 420rpx; display: block; }
 .chart-loading { text-align: center; color: #ccc; font-size: 26rpx; padding: 60rpx 0; }
 
 .poster-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
