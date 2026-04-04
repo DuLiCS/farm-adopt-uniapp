@@ -8,11 +8,15 @@
  <view class="user-detail">
  <view class="user-phone">{{ maskedPhone }}</view>
  <view class="user-stats">已守候 {{ orders.length }} 份山南</view>
+ <view class="user-greeting">{{ greeting }}</view>
  </view>
  </view>
  </view>
 
- <view v-if="loading" class="empty-state">加载中...</view>
+ <view v-if="loading" class="loading-state">
+ <view class="loading-icon">🌿</view>
+ <view class="loading-text">山南正在连线中...</view>
+ </view>
 
  <view v-else-if="orders.length === 0" class="empty-state">
  <view class="empty-icon">🍃</view>
@@ -41,7 +45,7 @@
  <view class="card-plan">{{ planTypeText(order.plan_type) }}</view>
  <view class="progress-wrap">
  <view class="progress-bar">
- <view class="progress-fill" :style="{ width: progressPercent(order) + '%' }"></view>
+ <view class="progress-fill" :style="{ width: progressPercent(order) + '%' }" :class="{ 'is-expired': order.status === 'expired' || order.status === 'EXPIRED' }"></view>
  </view>
  <view class="progress-text">第{{ adoptDays(order) }}天 / 共{{ totalDays(order) }}天</view>
  </view>
@@ -89,6 +93,15 @@ export default {
  maskedPhone() {
  if (!this.phone) return '未登录'
  return this.phone.substring(0, 3) + '****' + this.phone.substring(7)
+ },
+ greeting() {
+ const h = new Date().getHours()
+ if (h >= 5 && h < 9) return '早安，山南的茶正在醒来'
+ if (h >= 9 && h < 12) return '上午好，秦岭南麓晴天'
+ if (h >= 12 && h < 14) return '午好，正是茶树休憩时'
+ if (h >= 14 && h < 18) return '下午好，山南一切安好'
+ if (h >= 18 && h < 21) return '傍晚了，今日的守候结束了'
+ return '夜深了，感谢你守候山南'
  }
  },
 
@@ -96,7 +109,6 @@ export default {
  const token = uni.getStorageSync('token')
  if (!token) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
  this.phone = uni.getStorageSync('phone') || ''
- this.loadOrders()
  },
 
  onShow() {
@@ -254,6 +266,9 @@ export default {
 .user-detail { color: white; }
 .user-phone { font-size: 32rpx; font-weight: bold; margin-bottom: 8rpx; }
 .user-stats { font-size: 24rpx; opacity: 0.8; }
+.loading-state { text-align: center; padding: 120rpx 40rpx; }
+.loading-icon { font-size: 64rpx; margin-bottom: 20rpx; opacity: 0.5; }
+.loading-text { font-size: 28rpx; color: #aaa; }
 .empty-state { text-align: center; padding: 120rpx 40rpx; }
 .empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 .empty-title { font-size: 32rpx; font-weight: bold; color: #333; margin-bottom: 12rpx; }
@@ -277,6 +292,8 @@ export default {
 .progress-wrap { margin-bottom: 16rpx; }
 .progress-bar { height: 8rpx; background: #f0f0f0; border-radius: 999rpx; overflow: hidden; margin-bottom: 8rpx; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, #2d5a27, #5a8f4a); border-radius: 999rpx; transition: width 0.3s; }
+.progress-fill.is-expired { background: linear-gradient(90deg, #bbb, #ccc); }
+.user-greeting { font-size: 22rpx; opacity: 0.65; margin-top: 4rpx; }
 .progress-text { font-size: 22rpx; color: #999; }
 .card-expire { font-size: 22rpx; color: #bbb; }
 .settings-section { margin: 32rpx; background: white; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); }

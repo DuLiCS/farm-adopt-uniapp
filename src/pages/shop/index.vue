@@ -7,6 +7,12 @@
 
     <view v-if="loading" style="text-align:center; padding: 60rpx; color: #999;">加载中...</view>
 
+    <view v-else-if="plans.length === 0" class="plans-empty">
+      <view class="plans-empty-icon">🌱</view>
+      <view class="plans-empty-title">套餐还在路上</view>
+      <view class="plans-empty-sub">农场主正在配置认养方式，稍后再来看看</view>
+    </view>
+
     <template v-else>
       <!-- 茶树认养分组 -->
       <view class="section-group" v-if="teaPlans.length">
@@ -116,7 +122,7 @@ export default {
         const res = await uni.request({ url: `${SERVER_URL}/api/plans`, method: 'GET' })
         this.plans = res.data || []
       } catch (e) {
-        console.error(e)
+        uni.showToast({ title: '加载失败，稍后再试', icon: 'none' })
       } finally {
         this.loading = false
       }
@@ -155,6 +161,10 @@ export default {
   border-radius: 999rpx; padding: 24rpx; font-size: 32rpx; width: 100%;
 }
 .cta-outline:active { background-color: #f5f5f0; }
+.plans-empty { text-align: center; padding: 120rpx 60rpx; }
+.plans-empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
+.plans-empty-title { font-size: 32rpx; font-weight: 500; color: #444; margin-bottom: 12rpx; }
+.plans-empty-sub { font-size: 26rpx; color: #aaa; line-height: 1.8; }
 .overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.45); z-index: 999;
@@ -162,13 +172,13 @@ export default {
 }
 .drawer {
   background: #fff; width: 100%; border-radius: 32rpx 32rpx 0 0;
-  padding: 40rpx 40rpx 60rpx; max-height: 80vh; overflow-y: auto;
+  max-height: 80vh; display: flex; flex-direction: column;
 }
-.drawer-header { margin-bottom: 24rpx; }
-.drawer-divider { height: 2rpx; background: #f0f0f0; margin-bottom: 32rpx; }
-.drawer-body { margin-bottom: 40rpx; }
+.drawer-header { padding: 40rpx 40rpx 0; flex-shrink: 0; }
+.drawer-divider { height: 2rpx; background: #f0f0f0; margin: 24rpx 0 0; flex-shrink: 0; }
+.drawer-body { flex: 1; overflow-y: auto; padding: 32rpx 40rpx; }
 .rich-text { font-size: 28rpx; color: #444; line-height: 1.8; }
-.drawer-footer {}
+.drawer-footer { padding: 20rpx 40rpx 60rpx; border-top: 2rpx solid #f5f5f5; flex-shrink: 0; background: #fff; }
 .btn-adopt {
   background: #2d5a27; color: #fff; border-radius: 999rpx;
   padding: 28rpx; font-size: 32rpx; width: 100%; border: none;

@@ -35,10 +35,21 @@
       <view class="target-code">#{{ order.target_id || order.target?.code || '-' }}</view>
       <view class="adopt-days">秦岭南麓 · 山南第{{ adoptDays }}天</view>
       <view class="today-status" v-if="latestUpdate">
-        <view class="label">今日状态</view>
+        <view class="label">最新动态</view>
         <view class="content">{{ latestUpdate.description }}</view>
         <view class="update-time">{{ formatDate(latestUpdate.updated_at) }}</view>
       </view>
+      <view class="no-update-hint" v-else>
+        <text class="no-update-text">农场主还没有发布动态，静待消息</text>
+      </view>
+    </view>
+
+    <!-- 到期提示 -->
+    <view class="expired-notice" v-if="order && isExpired">
+      <view class="expired-icon">🍃</view>
+      <view class="expired-title">守候已画上句点</view>
+      <view class="expired-sub">感谢你这段时间的守候，山南记得你</view>
+      <view class="expired-cta" @click="goPlaza">去广场，找一棵等你的树 →</view>
     </view>
 
     <!-- 段三：时间轴 -->
@@ -50,13 +61,15 @@
           <view class="timeline-date">{{ formatDate(log.updated_at) }}</view>
           <view class="timeline-desc">{{ log.description }}</view>
           <scroll-view v-if="log.image_urls?.length" scroll-x class="image-row">
-            <image v-for="(url, idx) in log.image_urls" :key="idx" :src="url" mode="aspectFill" />
+            <image v-for="(url, idx) in log.image_urls" :key="idx" :src="url" mode="aspectFill" @click="activeImage = url" />
           </scroll-view>
         </view>
       </view>
     </view>
     <view class="timeline-empty" v-else>
-      还没有更新记录，请等待农场主的第一次记录
+      <view class="timeline-empty-icon">🧑‍🌾</view>
+      <view class="timeline-empty-title">农场主正在路上</view>
+      <view class="timeline-empty-sub">等待第一条生长记录</view>
     </view>
 
     <!-- 段四：权益状态 -->
@@ -76,9 +89,12 @@
       </view>
     </view>
 
-    <!-- 返回按钮 -->
-    <view style="text-align: center; margin: 32rpx 0;">
-      <text style="color: #999; font-size: 28rpx; cursor: pointer;" @click="goBack">返回列表</text>
+    <!-- 图片全屏查看器 -->
+    <view v-if="activeImage" class="img-viewer" @click="activeImage = null">
+      <view class="img-viewer-close">✕</view>
+      <image :src="activeImage" mode="aspectFit" class="img-viewer-img" @click.stop="" />
+    </view>
+
     <!-- 探望入口 -->
     <view class="visit-bar">
       <view class="visit-btn" @click="goVisit">
@@ -87,6 +103,10 @@
         <text class="visit-sub">查看实时照片与历史时间轴</text>
       </view>
     </view>
+
+    <!-- 返回按钮 -->
+    <view style="text-align: center; margin: 32rpx 0;">
+      <text style="color: #999; font-size: 28rpx; cursor: pointer;" @click="goBack">返回列表</text>
     </view>
   </view>
 </template>
@@ -94,11 +114,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getMyOrders, getOrderUpdates, getOrderDeliveries } from '@/api/orders.js'
+import { SERVER_URL } from '@/config.js'
 
 const order = ref(null)
 const updates = ref([])
 const deliveries = ref([])
 const orderId = ref(null)
+const activeImage = ref(null)
 
 // 计算属性
 const todayStr = computed(() => {
@@ -126,6 +148,15 @@ const latestUpdate = computed(() => {
   return updates.value[0] || null
 })
 
+const daysRemaining = computed(() => {
+  if (!order.value || !order.value.expire_date) return null
+  const expire = new Date(order.value.expire_date)
+  const today = new Date()
+  return Math.ceil((expire - today) / (1000 * 60 * 60 * 24))
+})
+
+const isExpired = computed(() => daysRemaining.value !== null && daysRemaining.value <= 0)
+
 const heroImage = computed(() => {
   // 优先使用最新更新的第一张图
   if (updates.value.length > 0 && updates.value[0].image_urls?.length > 0) {
@@ -150,7 +181,10 @@ const logTypeEmoji = (type) => {
 
 const planLabel = computed(() => {
   if (!order.value) return ''
-  const map = { season: '茶树认养·季度版', annual: '茶树认养·年度版', trial: '茶树认养·体验版' }
+  const map = {
+    season: '茶树认养·季度版', annual: '茶树认养·年度版', trial: '茶树认养·体验版',
+    tea_basic: '茶树认养·基础档', tea_standard: '茶树认养·标准档', plant_basic: '植物认养·季度版'
+  }
   return map[order.value.plan_type] || order.value.plan_type || ''
 })
 
@@ -170,6 +204,10 @@ const goBack = () => {
 
 const goVisit = () => {
   uni.navigateTo({ url: '/pages/camera/index' })
+}
+
+const goPlaza = () => {
+  uni.switchTab({ url: '/pages/plaza/index' })
 }
 
 onMounted(() => {
@@ -381,9 +419,28 @@ const loadData = async () => {
 }
 .timeline-empty {
   text-align: center;
-  color: #999;
-  padding: 80rpx 0;
+  padding: 80rpx 40rpx;
+  display: flex; flex-direction: column; align-items: center; gap: 16rpx;
 }
+.timeline-empty-icon { font-size: 72rpx; }
+.timeline-empty-title { font-size: 30rpx; color: #666; font-weight: 500; }
+.timeline-empty-sub { font-size: 24rpx; color: #bbb; }
+
+.no-update-hint { margin-top: 24rpx; }
+.no-update-text { font-size: 24rpx; color: #bbb; font-style: italic; }
+
+.expired-notice {
+  margin: 32rpx 30rpx 0;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 48rpx 40rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+.expired-icon { font-size: 72rpx; margin-bottom: 20rpx; }
+.expired-title { font-size: 34rpx; font-weight: bold; color: #333; margin-bottom: 12rpx; }
+.expired-sub { font-size: 26rpx; color: #999; line-height: 1.6; margin-bottom: 32rpx; }
+.expired-cta { font-size: 26rpx; color: #2d5a27; }
 
 /* 权益 */
 .rights-section {
@@ -426,6 +483,17 @@ const loadData = async () => {
   height: 100%;
   background: linear-gradient(160deg, #2d5a27 0%, #4a7c3f 60%, #5a8f4a 100%);
 }
+.img-viewer {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.95); z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+}
+.img-viewer-close {
+  position: absolute; top: 60rpx; right: 40rpx;
+  font-size: 40rpx; color: rgba(255,255,255,0.7); padding: 20rpx;
+}
+.img-viewer-img { width: 100vw; height: 75vw; }
+
 .visit-bar {
   margin: 32rpx 30rpx 0;
 }

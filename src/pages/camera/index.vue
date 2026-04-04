@@ -1,6 +1,14 @@
 <template>
   <view class="container">
 
+    <view class="nav-bar">
+      <view class="nav-back" @click="goBack">
+        <text class="nav-back-icon">‹</text>
+        <text class="nav-back-text">返回</text>
+      </view>
+      <view class="nav-title">探望</view>
+    </view>
+
     <view class="latest-section" v-if="latestPhoto">
       <image class="latest-img" :src="serverUrl + latestPhoto.url" mode="aspectFill"/>
       <view class="latest-overlay">
@@ -183,6 +191,9 @@ export default {
     toggleDay(date) {
       this.expandedDays = { ...this.expandedDays, [date]: !this.expandedDays[date] }
     },
+    goBack() {
+      uni.navigateBack()
+    },
     openPhoto(photo) {
       this.activePhoto = photo
     },
@@ -206,6 +217,14 @@ export default {
 
 <style scoped>
 .container { min-height: 100vh; background: #f5f5f0; padding-bottom: 60rpx; }
+.nav-bar {
+  display: flex; align-items: center; padding: 20rpx 30rpx;
+  background: #1a3d16; position: sticky; top: 0; z-index: 10;
+}
+.nav-back { display: flex; align-items: center; gap: 4rpx; flex: 1; cursor: pointer; }
+.nav-back-icon { font-size: 48rpx; color: rgba(255,255,255,0.9); line-height: 1; }
+.nav-back-text { font-size: 28rpx; color: rgba(255,255,255,0.85); }
+.nav-title { font-size: 30rpx; font-weight: 600; color: white; position: absolute; left: 50%; transform: translateX(-50%); }
 .latest-section { position: relative; height: 480rpx; overflow: hidden; background: #1a3d16; }
 .latest-img { width: 100%; height: 100%; }
 .latest-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 24rpx 30rpx; background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
