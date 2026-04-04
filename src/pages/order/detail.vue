@@ -32,8 +32,19 @@
 
     <!-- 段二：状态卡片 -->
     <view class="status-card" v-if="order">
-      <view class="target-code">#{{ order.target_id || order.target?.code || '-' }}</view>
+      <view class="target-code">{{ order.target?.code || ('#' + order.target_id) }}</view>
       <view class="adopt-days">秦岭南麓 · 山南第{{ adoptDays }}天</view>
+      <view class="tree-mood">
+        <text class="tree-mood-icon">🍃</text>
+        <text class="tree-mood-text">{{ treeMoodText }}</text>
+      </view>
+
+      <!-- 寄语存档 -->
+      <view class="dedication-card" v-if="dedication">
+        <text class="dedication-quote">"{{ dedication }}"</text>
+        <text class="dedication-hint">你说过的话</text>
+      </view>
+
       <view class="today-status" v-if="latestUpdate">
         <view class="label">最新动态</view>
         <view class="content">{{ latestUpdate.description }}</view>
@@ -96,12 +107,29 @@
       <image :src="activeImage" mode="aspectFit" class="img-viewer-img" @click.stop="" />
     </view>
 
-    <!-- 探望入口 -->
+    <!-- 探望 + 年报入口 -->
     <view class="visit-bar">
-      <view class="visit-btn" @click="goVisit">
+      <view class="visit-btn" @click="goVisit" style="flex:1;">
         <text class="visit-icon">📷</text>
         <text class="visit-text">探望我的树</text>
         <text class="visit-sub">查看实时照片与历史时间轴</text>
+      </view>
+      <view class="report-btn" @click="openReport">
+        <text class="report-icon">📋</text>
+        <text class="report-label">守候报告</text>
+      </view>
+    </view>
+
+    <!-- 年度守候报告弹窗 -->
+    <view v-if="showReport" class="report-mask" @click.self="showReport=false">
+      <view class="report-wrap">
+        <view class="report-hint">长按图片保存</view>
+        <canvas canvas-id="reportCanvas" id="reportCanvas"
+          class="report-canvas" style="width:560rpx;height:996rpx;"></canvas>
+        <view class="report-actions">
+          <button class="report-save-btn" @click="saveReport">保存到相册</button>
+          <view class="report-close-link" @click="showReport=false">关闭</view>
+        </view>
       </view>
     </view>
 
@@ -129,12 +157,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { getMyOrders, getOrderUpdates, getOrderDeliveries } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
+import { getTreeMood, countJieqiBetween } from '@/utils/treeMood.js'
 
 const order = ref(null)
 const updates = ref([])
 const deliveries = ref([])
 const orderId = ref(null)
 const activeImage = ref(null)
+const dedication = ref('')
+const showReport = ref(false)
 
 // 计算属性
 const todayStr = computed(() => {
@@ -170,6 +201,22 @@ const latestUpdate = computed(() => {
 })
 
 const isExpired = computed(() => daysRemaining.value !== null && daysRemaining.value <= 0)
+
+const treeMoodText = computed(() => {
+  const now = new Date()
+  return getTreeMood(now.getHours(), now.getMonth() + 1)
+})
+
+const jieqiCount = computed(() => {
+  if (!order.value?.start_date) return 0
+  return countJieqiBetween(order.value.start_date)
+})
+
+const deliveredCount = computed(() => {
+  return deliveries.value.filter(d =>
+    d.status === 'delivered' || d.status === 'DELIVERED'
+  ).length
+})
 
 const heroImage = computed(() => {
   // 优先使用最新更新的第一张图
@@ -229,14 +276,164 @@ const goUpdates = () => {
 }
 
 onMounted(() => {
-  // 从页面参数获取 order_id
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1]
   orderId.value = currentPage.options?.order_id
   if (orderId.value) {
     loadData()
+    // 读取本地存储的寄语（兼容后端未存的情况）
+    const local = uni.getStorageSync('dedication_' + orderId.value) || ''
+    dedication.value = local
   }
 })
+
+const openReport = () => { showReport.value = true; drawReport() }
+
+const drawReport = () => {
+  uni.nextTick(() => {
+    const o = order.value
+    if (!o) return
+    const ctx = uni.createCanvasContext('reportCanvas')
+    const W = 630, H = 1120
+
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, H)
+    grad.addColorStop(0, '#0a1e0c')
+    grad.addColorStop(0.5, '#0f2812')
+    grad.addColorStop(1, '#071208')
+    ctx.setFillStyle(grad)
+    ctx.fillRect(0, 0, W, H)
+
+    // Subtle texture lines
+    ctx.setStrokeStyle('rgba(255,255,255,0.03)')
+    ctx.setLineWidth(1)
+    for (let i = 0; i < H; i += 24) {
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke()
+    }
+
+    // Top year badge
+    ctx.setTextAlign('center')
+    ctx.setFontSize(20)
+    ctx.setFillStyle('rgba(212,169,106,0.55)')
+    const now = new Date()
+    ctx.fillText(`${now.getFullYear()}  ·  守 候 报 告`, W / 2, 72)
+
+    // Thin gold rule
+    ctx.setStrokeStyle('rgba(212,169,106,0.2)')
+    ctx.setLineWidth(0.5)
+    ctx.beginPath(); ctx.moveTo(80, 90); ctx.lineTo(W - 80, 90); ctx.stroke()
+
+    // Tree name
+    const name = o.target?.name || '我的守候'
+    ctx.setFontSize(42)
+    ctx.setFillStyle('#ffffff')
+    ctx.fillText(name, W / 2, 158)
+
+    // Location
+    ctx.setFontSize(20)
+    ctx.setFillStyle('rgba(255,255,255,0.3)')
+    ctx.fillText('秦岭南麓 · 汉中西乡 · 海拔800m', W / 2, 192)
+
+    // ── Main hero stat ──
+    const days = adoptDays.value
+    ctx.setFontSize(16)
+    ctx.setFillStyle('rgba(255,255,255,0.35)')
+    ctx.fillText('与这棵树', W / 2, 282)
+    ctx.setFontSize(108)
+    ctx.setFillStyle('#ffffff')
+    ctx.fillText(String(days), W / 2, 390)
+    ctx.setFontSize(36)
+    ctx.setFillStyle('rgba(255,255,255,0.6)')
+    ctx.fillText('天', W / 2, 432)
+    ctx.setFontSize(16)
+    ctx.setFillStyle('rgba(255,255,255,0.35)')
+    ctx.fillText('相处的日子', W / 2, 462)
+
+    // ── 4-column stats ──
+    const stats = [
+      { num: jieqiCount.value,       label: '个节气' },
+      { num: updates.value.length,   label: '条动态' },
+      { num: deliveredCount.value,   label: '包已寄' },
+      { num: Math.max(0, daysRemaining.value || 0), label: '天守候' },
+    ]
+    const colW = W / 4
+    const statsY = 540
+
+    // stats background pill
+    ctx.setFillStyle('rgba(255,255,255,0.05)')
+    ctx.beginPath()
+    ctx.roundRect(40, statsY - 20, W - 80, 110, 16)
+    ctx.fill()
+
+    stats.forEach((s, i) => {
+      const cx = colW * i + colW / 2
+      ctx.setFontSize(46)
+      ctx.setFillStyle('#ffffff')
+      ctx.fillText(String(s.num), cx, statsY + 54)
+      ctx.setFontSize(18)
+      ctx.setFillStyle('rgba(255,255,255,0.4)')
+      ctx.fillText(s.label, cx, statsY + 80)
+      if (i > 0) {
+        ctx.setStrokeStyle('rgba(255,255,255,0.1)')
+        ctx.setLineWidth(1)
+        ctx.beginPath(); ctx.moveTo(cx - colW / 2, statsY + 4); ctx.lineTo(cx - colW / 2, statsY + 92); ctx.stroke()
+      }
+    })
+
+    // ── Mood quote ──
+    ctx.setStrokeStyle('rgba(212,169,106,0.15)')
+    ctx.setLineWidth(0.5)
+    ctx.beginPath(); ctx.moveTo(80, 690); ctx.lineTo(W - 80, 690); ctx.stroke()
+
+    ctx.setFontSize(22)
+    ctx.setFillStyle('rgba(255,255,255,0.5)')
+    // Word-wrap the mood text (~24 chars per line)
+    const mood = treeMoodText.value
+    const lines = []
+    const maxW = 460
+    let cur = ''
+    for (const ch of mood) {
+      cur += ch
+      if (ctx.measureText(cur).width > maxW) { lines.push(cur.slice(0, -1)); cur = ch }
+    }
+    if (cur) lines.push(cur)
+    lines.forEach((l, i) => ctx.fillText(l, W / 2, 730 + i * 36))
+
+    // ── Dedication ──
+    if (dedication.value) {
+      const dedY = 730 + lines.length * 36 + 40
+      ctx.setFontSize(20)
+      ctx.setFillStyle('rgba(212,169,106,0.7)')
+      ctx.fillText(`"${dedication.value}"`, W / 2, dedY)
+    }
+
+    // ── Footer ──
+    ctx.setStrokeStyle('rgba(212,169,106,0.2)')
+    ctx.setLineWidth(0.5)
+    ctx.beginPath(); ctx.moveTo(80, H - 90); ctx.lineTo(W - 80, H - 90); ctx.stroke()
+    ctx.setFontSize(22)
+    ctx.setFillStyle('rgba(212,169,106,0.6)')
+    ctx.fillText('山 南 记', W / 2, H - 62)
+    ctx.setFontSize(17)
+    ctx.setFillStyle('rgba(255,255,255,0.2)')
+    ctx.fillText('shannanji.com', W / 2, H - 40)
+
+    ctx.draw()
+  })
+}
+
+const saveReport = () => {
+  uni.canvasToTempFilePath({
+    canvasId: 'reportCanvas',
+    success: (res) => {
+      uni.saveImageToPhotosAlbum({
+        filePath: res.tempFilePath,
+        success: () => uni.showToast({ title: '已保存到相册', icon: 'success' }),
+        fail: () => uni.showToast({ title: '保存失败，请长按图片保存', icon: 'none' })
+      })
+    }
+  })
+}
 
 const loadData = async () => {
   uni.showLoading({ title: '加载中...', mask: true })
@@ -244,6 +441,8 @@ const loadData = async () => {
     // 加载订单列表，然后查找当前订单
     const orders = await getMyOrders()
     order.value = orders.find(o => o.id === Number(orderId.value))
+    // 优先使用后端返回的寄语，fallback 本地存储
+    if (order.value?.dedication) dedication.value = order.value.dedication
     // 加载更新和配送
     updates.value = await getOrderUpdates(orderId.value)
     deliveries.value = await getOrderDeliveries(orderId.value)
@@ -334,10 +533,14 @@ const loadData = async () => {
   margin-bottom: 6rpx;
 }
 .glass-value {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: bold;
   color: white;
   text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .glass-unit {
   font-size: 22rpx;
@@ -367,7 +570,17 @@ const loadData = async () => {
   color: #2d5a27;
   font-size: 28rpx;
   margin-top: 12rpx;
-  margin-bottom: 30rpx;
+  margin-bottom: 20rpx;
+}
+.tree-mood {
+  display: flex; align-items: flex-start; gap: 10rpx;
+  background: #f5f9f5; border-radius: 12rpx;
+  padding: 18rpx 20rpx; margin-bottom: 28rpx;
+}
+.tree-mood-icon { font-size: 26rpx; flex-shrink: 0; }
+.tree-mood-text {
+  font-size: 26rpx; color: #5a8a52;
+  line-height: 1.7; font-style: italic;
 }
 .today-status {
   background: #f5f9f5;
@@ -519,8 +732,25 @@ const loadData = async () => {
 }
 .img-viewer-img { width: 100vw; height: 75vw; }
 
+/* 寄语卡片 */
+.dedication-card {
+  background: linear-gradient(135deg, #fffdf5 0%, #fff9ee 100%);
+  border: 1.5rpx solid rgba(212,169,106,0.25);
+  border-radius: 16rpx; padding: 24rpx 28rpx;
+  margin-bottom: 28rpx;
+}
+.dedication-quote {
+  display: block; font-size: 28rpx; color: #8a6520;
+  font-style: italic; line-height: 1.7;
+}
+.dedication-hint {
+  display: block; font-size: 20rpx; color: #caa050;
+  margin-top: 8rpx; text-align: right;
+}
+/* 探望 + 年报 */
 .visit-bar {
   margin: 32rpx 30rpx 0;
+  display: flex; gap: 16rpx; align-items: stretch;
 }
 .visit-btn {
   background: linear-gradient(135deg, #1a3d16 0%, #2d5a27 100%);
@@ -535,6 +765,34 @@ const loadData = async () => {
 .visit-icon { font-size: 48rpx; }
 .visit-text { font-size: 32rpx; font-weight: bold; color: white; }
 .visit-sub { font-size: 22rpx; color: rgba(255,255,255,0.6); }
+.report-btn {
+  background: #f5f9f5; border: 1.5rpx solid #d0e8cc;
+  border-radius: 20rpx; padding: 28rpx 20rpx;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10rpx;
+  width: 120rpx; flex-shrink: 0; cursor: pointer;
+}
+.report-icon { font-size: 40rpx; }
+.report-label { font-size: 22rpx; color: #2d5a27; font-weight: 600; }
+/* 年报弹窗 */
+.report-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85); z-index: 200;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.report-wrap { display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
+.report-hint { font-size: 24rpx; color: rgba(255,255,255,0.5); }
+.report-canvas {
+  border-radius: 16rpx;
+  box-shadow: 0 0 0 2rpx rgba(212,169,106,0.4), 0 20rpx 60rpx rgba(0,0,0,0.5);
+}
+.report-actions { display: flex; flex-direction: column; align-items: center; gap: 16rpx; width: 560rpx; }
+.report-save-btn {
+  width: 100%; background: linear-gradient(135deg, #2d5a27, #3d7a35);
+  color: white; border: none; border-radius: 999rpx;
+  padding: 24rpx; font-size: 30rpx;
+}
+.report-close-link { font-size: 26rpx; color: rgba(255,255,255,0.4); padding: 8rpx; }
 
 .expire-notice {
   margin: 32rpx 30rpx; border-radius: 20rpx; padding: 40rpx 36rpx; text-align: center;

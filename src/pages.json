@@ -79,6 +79,7 @@
         "navigationBarTitleText": "探望我的树",
         "navigationBarBackgroundColor": "#1a3d16",
         "navigationBarTextStyle": "white",
+        "navigationStyle": "custom",
         "enablePullDownRefresh": true,
         "backgroundColor": "#1a3d16",
         "backgroundTextStyle": "light"

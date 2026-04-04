@@ -1,8 +1,8 @@
 <template>
   <view class="container">
-    <view style="text-align: center; margin: 48rpx 0 32rpx;">
-      <view style="font-size: 36rpx; font-weight: bold; color: #2d5a27;">认养方式</view>
-      <view style="font-size: 28rpx; color: #999; margin-top: 8rpx;">选一种方式，和这块土地保持联系</view>
+    <view class="shop-hero">
+      <view class="shop-hero-title">山南套餐</view>
+      <view class="shop-hero-sub">选一种方式，和这块土地保持联系</view>
     </view>
 
     <view v-if="loading" style="text-align:center; padding: 60rpx; color: #999;">加载中...</view>
@@ -151,12 +151,27 @@ export default {
 </script>
 
 <style scoped>
-.container { padding: 32rpx; min-height: 100vh; box-sizing: border-box; background: #f5f5f0; }
-.section-group { margin-bottom: 60rpx; }
+.container { padding: 0 32rpx 60rpx; min-height: 100vh; box-sizing: border-box; background: #f5f5f0; }
+.shop-hero {
+  padding: 32rpx 0 24rpx;
+  border-bottom: 1rpx solid #ebebeb;
+  margin-bottom: 8rpx;
+}
+.shop-hero-title { font-size: 38rpx; font-weight: bold; color: #1a3d16; }
+.shop-hero-sub { font-size: 26rpx; color: #999; margin-top: 8rpx; }
+.section-group { margin-bottom: 48rpx; }
 .group-title {
-  font-size: 17px; font-weight: 600; color: #2d5a27;
-  margin-bottom: 24rpx; padding-bottom: 12rpx;
-  border-bottom: 2rpx solid #e8e8e8;
+  font-size: 28rpx; font-weight: 700; color: #1a3d16;
+  margin: 32rpx 0 20rpx;
+  display: flex; align-items: center; gap: 12rpx;
+}
+.group-title::before {
+  content: '';
+  display: inline-block;
+  width: 6rpx; height: 32rpx;
+  background: #2d5a27;
+  border-radius: 3rpx;
+  flex-shrink: 0;
 }
 .card { background: #fff; border-radius: 16rpx; padding: 32rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
 .card:active { background: #f9fdf9; }

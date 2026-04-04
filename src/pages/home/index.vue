@@ -36,11 +36,33 @@
  </view>
 
  <view v-else class="order-list">
- <view class="jieqi-bar" v-if="nextJieqi">
-   <text class="jieqi-bar-icon">🌿</text>
-   <text v-if="nextJieqi.isToday" class="jieqi-bar-text">今日 <text class="jieqi-bar-name">{{ nextJieqi.name }}</text></text>
-   <text v-else class="jieqi-bar-text">距 <text class="jieqi-bar-name">{{ nextJieqi.name }}</text> 还有 <text class="jieqi-bar-days">{{ nextJieqi.days }}</text> 天</text>
- </view>
+
+   <!-- 节气横幅（仅当日节气且未关闭时展示） -->
+   <view v-if="nextJieqi && nextJieqi.isToday && !jieqiDismissed" class="jieqi-banner">
+     <view class="jieqi-banner-watermark">{{ nextJieqi.name }}</view>
+     <view class="jieqi-banner-inner">
+       <view class="jieqi-banner-left">
+         <view class="jieqi-banner-tag">今日节气</view>
+         <view class="jieqi-banner-name">{{ nextJieqi.name }}</view>
+         <view class="jieqi-banner-copy">{{ jieqiFarmCopy }}</view>
+       </view>
+       <view class="jieqi-banner-close" @click.stop="dismissJieqi">✕</view>
+     </view>
+   </view>
+
+   <!-- 普通节气提示条 -->
+   <view class="jieqi-bar" v-else-if="nextJieqi">
+     <text class="jieqi-bar-icon">🌿</text>
+     <text v-if="nextJieqi.isToday" class="jieqi-bar-text">今日 <text class="jieqi-bar-name">{{ nextJieqi.name }}</text></text>
+     <text v-else class="jieqi-bar-text">距 <text class="jieqi-bar-name">{{ nextJieqi.name }}</text> 还有 <text class="jieqi-bar-days">{{ nextJieqi.days }}</text> 天</text>
+   </view>
+
+   <!-- 今日山南·树的心情 -->
+   <view class="tree-mood-bar">
+     <text class="tree-mood-leaf">🍃</text>
+     <text class="tree-mood-text">{{ treeMoodText }}</text>
+   </view>
+
  <view class="section-title">我的守候</view>
  <view class="order-card" v-for="(order, idx) in orders" :key="order.id" @click="goDetail(order.id)">
  <view class="card-cover">
@@ -102,6 +124,7 @@
 <script>
 import { getMyOrders, getOrderUpdates } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
+import { getTreeMood, JIEQI_FARM_COPY } from '@/utils/treeMood.js'
 
 const JIEQI = {
   '2026-01-05':'小寒','2026-01-20':'大寒','2026-02-04':'立春','2026-02-19':'雨水',
@@ -132,7 +155,8 @@ export default {
  phone: '',
  showPoster: false,
  posterOrder: null,
- latestUpdates: {}
+ latestUpdates: {},
+ jieqiDismissed: false
  }
  },
 
@@ -158,6 +182,14 @@ export default {
  if (h >= 14 && h < 18) return '下午好，山南一切安好'
  if (h >= 18 && h < 21) return '傍晚了，今日的守候结束了'
  return '夜深了，感谢你守候山南'
+ },
+ treeMoodText() {
+   const now = new Date()
+   return getTreeMood(now.getHours(), now.getMonth() + 1)
+ },
+ jieqiFarmCopy() {
+   if (!this.nextJieqi || !this.nextJieqi.isToday) return ''
+   return JIEQI_FARM_COPY[this.nextJieqi.name] || ''
  }
  },
 
@@ -171,6 +203,9 @@ export default {
  const token = uni.getStorageSync('token')
  if (!token) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
  this.loadOrders()
+ // 恢复节气横幅关闭状态（每天重置）
+ const today = new Date().toISOString().substring(0, 10)
+ this.jieqiDismissed = !!uni.getStorageSync('jieqi_dismissed_' + today)
  },
 
  onPullDownRefresh() {
@@ -221,6 +256,11 @@ export default {
  },
  goPlaza() {
  uni.switchTab({ url: '/pages/plaza/index' })
+ },
+ dismissJieqi() {
+   const today = new Date().toISOString().substring(0, 10)
+   uni.setStorageSync('jieqi_dismissed_' + today, true)
+   this.jieqiDismissed = true
  },
  handleLogout() {
  uni.showModal({
@@ -487,15 +527,61 @@ export default {
 .empty-sub { font-size: 28rpx; color: #999; margin-bottom: 48rpx; }
 .btn-primary { background: #2d5a27; color: white; border: none; border-radius: 999rpx; padding: 24rpx 80rpx; font-size: 30rpx; }
 .order-list { padding: 32rpx; }
+/* ── 节气横幅 ── */
+.jieqi-banner {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #1a3d16 0%, #2d5a27 60%, #3d7a35 100%);
+  border-radius: 20rpx; margin-bottom: 24rpx;
+  padding: 32rpx 28rpx;
+}
+.jieqi-banner-watermark {
+  position: absolute; right: -8rpx; top: 50%;
+  transform: translateY(-50%);
+  font-size: 160rpx; font-weight: 900;
+  color: rgba(255,255,255,0.06);
+  line-height: 1; pointer-events: none;
+  letter-spacing: -4rpx;
+}
+.jieqi-banner-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 20rpx;
+}
+.jieqi-banner-left { flex: 1; }
+.jieqi-banner-tag {
+  font-size: 20rpx; color: rgba(255,255,255,0.6);
+  letter-spacing: 2rpx; margin-bottom: 8rpx;
+}
+.jieqi-banner-name {
+  font-size: 44rpx; font-weight: 800; color: white;
+  margin-bottom: 10rpx; letter-spacing: 4rpx;
+}
+.jieqi-banner-copy {
+  font-size: 24rpx; color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+}
+.jieqi-banner-close {
+  font-size: 32rpx; color: rgba(255,255,255,0.4);
+  padding: 8rpx; flex-shrink: 0;
+}
+/* ── 普通节气条 ── */
 .jieqi-bar {
  display: flex; align-items: center; gap: 12rpx;
  background: #f0f9f0; border-radius: 12rpx;
- padding: 20rpx 24rpx; margin-bottom: 28rpx;
+ padding: 20rpx 24rpx; margin-bottom: 24rpx;
 }
 .jieqi-bar-icon { font-size: 28rpx; }
 .jieqi-bar-text { font-size: 26rpx; color: #666; }
 .jieqi-bar-name { color: #2d5a27; font-weight: bold; }
 .jieqi-bar-days { color: #2d5a27; font-weight: bold; font-size: 30rpx; }
+/* ── 树的今日心情 ── */
+.tree-mood-bar {
+  display: flex; align-items: flex-start; gap: 12rpx;
+  padding: 0 4rpx 28rpx;
+}
+.tree-mood-leaf { font-size: 26rpx; flex-shrink: 0; margin-top: 2rpx; }
+.tree-mood-text {
+  font-size: 26rpx; color: #888;
+  line-height: 1.7; font-style: italic;
+}
 .section-title { font-size: 30rpx; font-weight: bold; color: #2d5a27; margin-bottom: 24rpx; }
 .order-card { background: white; border-radius: 20rpx; overflow: hidden; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); display: flex; }
 .card-cover { width: 180rpx; flex-shrink: 0; position: relative; }

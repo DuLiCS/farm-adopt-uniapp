@@ -13,7 +13,7 @@
       <image class="latest-img" :src="serverUrl + latestPhoto.url" mode="aspectFill"/>
       <view class="latest-overlay">
         <view class="latest-badge">📷 最新照片</view>
-        <view class="latest-time">{{ latestPhoto.datetime }}</view>
+        <view class="latest-time">{{ formatDatetime(latestPhoto.datetime) }}</view>
       </view>
     </view>
     <view class="latest-empty" v-else>
@@ -44,7 +44,7 @@
 
           <view class="date-header" @click="toggleDay(group.date)">
             <view class="date-left">
-              <text class="date-label">{{ group.date }}</text>
+              <text class="date-label">{{ group.displayDate }}</text>
               <text v-if="group.jieqi" class="jieqi-tag">{{ group.jieqi }}</text>
             </view>
             <view class="date-right">
@@ -92,7 +92,7 @@
       <view class="viewer-close">✕</view>
       <image :src="serverUrl + activePhoto.url" mode="aspectFit" class="viewer-img" @click.stop=""/>
       <view class="viewer-info" @click.stop="">
-        <text class="viewer-datetime">{{ activePhoto.datetime }}</text>
+        <text class="viewer-datetime">{{ formatDatetime(activePhoto.datetime) }}</text>
         <button class="viewer-save-btn" @click.stop="savePhoto">保存照片</button>
       </view>
     </view>
@@ -204,11 +204,18 @@ export default {
       return firstGroup.photos[0]
     },
     processedDates() {
-      return this.dates.map(group => ({
-        ...group,
-        jieqi: JIEQI[group.date] || null,
-        keyFrames: pickKeyFrames(group.photos)
-      }))
+      return this.dates.map(group => {
+        const parts = group.date.split('-')
+        const displayDate = parts.length === 3
+          ? parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日'
+          : group.date
+        return {
+          ...group,
+          displayDate,
+          jieqi: JIEQI[group.date] || null,
+          keyFrames: pickKeyFrames(group.photos)
+        }
+      })
     },
     photoStats() {
       const totalDays = this.processedDates.length
@@ -266,6 +273,17 @@ export default {
     openPhoto(photo) {
       this.activePhoto = photo
     },
+    formatDatetime(dt) {
+      if (!dt) return ''
+      // dt is like "2026-03-31 22:00:01"
+      const parts = dt.split(' ')
+      const dateParts = (parts[0] || '').split('-')
+      const timePart = (parts[1] || '').substring(0, 5)
+      if (dateParts.length === 3) {
+        return `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日 ${timePart}`
+      }
+      return dt
+    },
     savePhoto() {
       if (!this.activePhoto) return
       uni.downloadFile({
@@ -288,6 +306,7 @@ export default {
 .container { min-height: 100vh; background: #f5f5f0; padding-bottom: 60rpx; }
 .nav-bar {
   display: flex; align-items: center; padding: 20rpx 30rpx;
+  padding-top: calc(20rpx + var(--status-bar-height, 0px));
   background: #1a3d16; position: sticky; top: 0; z-index: 10;
 }
 .nav-back { display: flex; align-items: center; gap: 4rpx; flex: 1; cursor: pointer; }

@@ -117,31 +117,65 @@
 
     <view v-if="showAddressForm" class="address-mask" @click.self="showAddressForm=false">
       <view class="address-form">
-        <view class="form-title">填写收货信息</view>
-        <view class="form-subtitle">寄茶时我们会用到这里的地址</view>
 
-        <view class="form-group">
-          <view class="form-label">收货人 <text class="required">*</text></view>
-          <input class="form-input" v-model="address.name" placeholder="请输入姓名" />
+        <!-- 拖拽把手 -->
+        <view class="form-handle"></view>
+
+        <!-- 订单摘要 -->
+        <view class="form-order-summary" v-if="target">
+          <view class="summary-tree">
+            <text class="summary-emoji">🌿</text>
+            <view class="summary-info">
+              <text class="summary-name">{{ target.name }}</text>
+              <text class="summary-plan">{{ selectedPlanName }}</text>
+            </view>
+          </view>
+          <view class="summary-price" v-if="selectedPlanPriceDisplay">
+            <text class="summary-price-num">¥{{ selectedPlanPriceDisplay }}</text>
+          </view>
         </view>
 
-        <view class="form-group">
-          <view class="form-label">手机号 <text class="required">*</text></view>
-          <input class="form-input" v-model="address.phone" type="number" placeholder="请输入手机号" maxlength="11" />
+        <!-- 寄语 -->
+        <view class="dedication-wrap">
+          <view class="dedication-label">写一句给你的树 <text class="optional-tag">选填</text></view>
+          <input class="dedication-input" v-model="address.dedication"
+            placeholder="它会记得你说过的话…" maxlength="40" />
+          <text class="dedication-count">{{ (address.dedication||'').length }}/40</text>
         </view>
 
-        <view class="form-group">
-          <view class="form-label">收货地址 <text class="required">*</text></view>
-          <input class="form-input" v-model="address.address" placeholder="省 / 市 / 区 / 街道门牌号" />
+        <!-- 表单标题 -->
+        <view class="form-header">
+          <view class="form-title">收货信息</view>
+          <view class="form-subtitle">寄茶时用到，仅此一用</view>
         </view>
 
-        <view class="form-group">
-          <view class="form-label">备注</view>
-          <input class="form-input" v-model="address.note" placeholder="如：放门卫处（可不填）" />
+        <!-- 输入框组 -->
+        <view class="form-fields">
+          <view class="form-row">
+            <view class="form-field">
+              <text class="field-label">收货人</text>
+              <input class="field-input" v-model="address.name" placeholder="姓名" />
+            </view>
+            <view class="form-field">
+              <text class="field-label">手机号</text>
+              <input class="field-input" v-model="address.phone" type="number" placeholder="11位手机号" maxlength="11" />
+            </view>
+          </view>
+          <view class="form-field full">
+            <text class="field-label">收货地址</text>
+            <input class="field-input" v-model="address.address" placeholder="省 / 市 / 区 / 街道门牌号" />
+          </view>
+          <view class="form-field full">
+            <text class="field-label optional">备注 <text class="optional-tag">选填</text></text>
+            <input class="field-input" v-model="address.note" placeholder="如：放门卫处" />
+          </view>
         </view>
 
-        <button class="form-submit-btn" @click="confirmOrder">开始守候</button>
-        <button class="form-cancel-btn" @click="showAddressForm=false">再想想</button>
+        <!-- 提交 -->
+        <button class="form-submit-btn" @click="confirmOrder">🌱 开始守候</button>
+        <view class="form-footer-note">认养后即可开始你的守候 · 资料仅用于寄送</view>
+        <text class="form-cancel-btn" @click="showAddressForm=false">再想想</text>
+
       </view>
     </view>
 
@@ -185,7 +219,7 @@ export default {
       loading: false,
       showAddressForm: false,
       showPoster: false,
-      address: { name: '', phone: '', address: '', note: '' },
+      address: { name: '', phone: '', address: '', note: '', dedication: '' },
       sensorData: null,
       chartHours: 24,
       chartLoading: false,
@@ -600,12 +634,17 @@ export default {
             receiver_name: this.address.name,
             receiver_phone: this.address.phone,
             receiver_address: this.address.address,
-            receiver_note: this.address.note
+            receiver_note: this.address.note,
+            dedication: this.address.dedication || ''
           }
         })
         uni.hideLoading()
         if (res.data && res.data.id) {
           this.showAddressForm = false
+          // 本地存寄语，用 orderId 作 key（兼容后端不存的情况）
+          if (this.address.dedication) {
+            uni.setStorageSync('dedication_' + res.data.id, this.address.dedication)
+          }
           const targetName = encodeURIComponent(this.target && this.target.name || '')
  uni.redirectTo({ url: '/pages/success/index?order_id=' + res.data.id + '&target_name=' + targetName })
         } else {
@@ -664,16 +703,112 @@ export default {
 .adopted-notice { margin: 80rpx 30rpx; text-align: center; padding: 60rpx; background: white; border-radius: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); }
 .notice-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 .notice-text { font-size: 28rpx; color: #666; }
-.address-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; }
-.address-form { background: white; width: 100%; border-radius: 24rpx 24rpx 0 0; padding: 40rpx; padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); max-height: 85vh; overflow-y: auto; }
-.form-title { font-size: 32rpx; font-weight: bold; color: #333; text-align: center; }
-.form-subtitle { font-size: 24rpx; color: #aaa; text-align: center; margin-top: 8rpx; margin-bottom: 32rpx; }
-.form-group { margin-bottom: 24rpx; }
-.form-label { font-size: 26rpx; color: #555; margin-bottom: 10rpx; }
-.required { color: #e74c3c; }
-.form-input { width: 100%; border: 1rpx solid #e0e0e0; border-radius: 12rpx; padding: 22rpx 24rpx; font-size: 28rpx; box-sizing: border-box; background: #fafafa; }
-.form-submit-btn { width: 100%; background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 24rpx; font-size: 30rpx; margin-top: 24rpx; }
-.form-cancel-btn { width: 100%; background: none; color: #999; border: none; font-size: 28rpx; margin-top: 12rpx; padding: 16rpx; }
+/* ── 收货信息弹窗 ── */
+.address-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45); z-index: 100;
+  display: flex; align-items: flex-end;
+}
+.address-form {
+  background: #fff; width: 100%;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 0 0 calc(32rpx + env(safe-area-inset-bottom));
+  max-height: 90vh; overflow-y: auto;
+}
+/* 拖拽把手 */
+.form-handle {
+  width: 64rpx; height: 8rpx; border-radius: 999rpx;
+  background: #e0e0e0; margin: 16rpx auto 0;
+}
+/* 订单摘要 */
+.form-order-summary {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 24rpx 32rpx 0;
+  background: linear-gradient(135deg, #f0f7ee 0%, #e8f5e5 100%);
+  border-radius: 20rpx; padding: 24rpx 28rpx;
+  border: 1rpx solid rgba(45,90,39,0.12);
+}
+.summary-tree { display: flex; align-items: center; gap: 16rpx; flex: 1; min-width: 0; }
+.summary-emoji { font-size: 40rpx; flex-shrink: 0; }
+.summary-info { display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
+.summary-name { font-size: 28rpx; font-weight: 700; color: #1a3d16; }
+.summary-plan { font-size: 22rpx; color: #5a8a52; }
+.summary-price { flex-shrink: 0; text-align: right; }
+.summary-price-num { font-size: 36rpx; font-weight: bold; color: #2d5a27; }
+/* 寄语 */
+.dedication-wrap {
+  margin: 24rpx 32rpx 0;
+  background: linear-gradient(135deg, #fff9ee 0%, #fffdf5 100%);
+  border: 1.5rpx solid rgba(212,169,106,0.3);
+  border-radius: 20rpx; padding: 20rpx 24rpx;
+}
+.dedication-label {
+  font-size: 22rpx; font-weight: 600; color: #b89050;
+  margin-bottom: 10rpx; display: flex; align-items: center; gap: 10rpx;
+}
+.dedication-input {
+  width: 100%; box-sizing: border-box;
+  font-size: 28rpx; color: #444;
+  background: transparent; border: none;
+  padding: 0; line-height: 1.6;
+  font-style: italic;
+}
+.dedication-count {
+  display: block; text-align: right;
+  font-size: 20rpx; color: #ccc; margin-top: 8rpx;
+}
+/* 表单标题 */
+.form-header { padding: 28rpx 32rpx 4rpx; }
+.form-title { font-size: 30rpx; font-weight: 700; color: #222; }
+.form-subtitle { font-size: 22rpx; color: #bbb; margin-top: 4rpx; }
+/* 字段组 */
+.form-fields { padding: 20rpx 32rpx 0; }
+.form-row { display: flex; gap: 16rpx; margin-bottom: 0; }
+.form-row .form-field { flex: 1; }
+.form-field { margin-bottom: 20rpx; }
+.form-field.full { width: 100%; }
+.field-label {
+  font-size: 22rpx; font-weight: 600; color: #888;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8rpx; display: block;
+}
+.optional { color: #aaa; font-weight: 400; }
+.optional-tag {
+  font-size: 20rpx; color: #bbb;
+  background: #f5f5f5; padding: 2rpx 10rpx;
+  border-radius: 999rpx; margin-left: 6rpx;
+}
+.field-input {
+  width: 100%; box-sizing: border-box;
+  background: #f7f9f7;
+  border: 1.5rpx solid #e8ede8;
+  border-radius: 16rpx;
+  padding: 22rpx 20rpx;
+  font-size: 28rpx; color: #222;
+  transition: border-color 0.2s;
+}
+.field-input:focus { border-color: #2d5a27; background: #f0f7ee; }
+/* 提交按钮 */
+.form-submit-btn {
+  display: block; width: calc(100% - 64rpx);
+  margin: 24rpx 32rpx 0;
+  background: linear-gradient(135deg, #2d5a27 0%, #3d7a35 100%);
+  color: white; border: none;
+  border-radius: 999rpx;
+  padding: 28rpx; font-size: 30rpx; font-weight: 600;
+  box-shadow: 0 6rpx 20rpx rgba(45,90,39,0.3);
+}
+.form-submit-btn:active { opacity: 0.9; transform: scale(0.99); }
+.form-footer-note {
+  text-align: center; font-size: 22rpx; color: #ccc;
+  margin-top: 16rpx; padding: 0 32rpx;
+}
+.form-cancel-btn {
+  display: block; text-align: center;
+  color: #bbb; font-size: 26rpx;
+  padding: 20rpx; margin-top: 4rpx;
+  cursor: pointer;
+}
 .cta-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 24rpx 30rpx; background: white; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.08); padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); }
 .cta-info { flex: 1; }
 .cta-label { font-size: 24rpx; color: #999; }

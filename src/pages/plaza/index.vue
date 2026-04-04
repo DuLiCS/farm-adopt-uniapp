@@ -291,7 +291,7 @@ export default {
     },
     maskedPhone() {
       if (!this.phone || this.phone.length < 8) return ''
-      return this.phone.slice(-4)
+      return '···' + this.phone.slice(-4)
     },
     sensorUpdateText() {
       if (!this.sensorData || !this.sensorData.recorded_at) return ''
