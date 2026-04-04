@@ -162,18 +162,11 @@ const daysRemaining = computed(() => {
   if (!order.value || !order.value.expire_date) return null
   const expire = new Date(order.value.expire_date)
   const today = new Date()
-  return Math.floor((expire - today) / (1000 * 60 * 60 * 24))
+  return Math.ceil((expire - today) / (1000 * 60 * 60 * 24))
 })
 
 const latestUpdate = computed(() => {
   return updates.value[0] || null
-})
-
-const daysRemaining = computed(() => {
-  if (!order.value || !order.value.expire_date) return null
-  const expire = new Date(order.value.expire_date)
-  const today = new Date()
-  return Math.ceil((expire - today) / (1000 * 60 * 60 * 24))
 })
 
 const isExpired = computed(() => daysRemaining.value !== null && daysRemaining.value <= 0)
@@ -233,8 +226,6 @@ const goVisit = () => {
 
 const goUpdates = () => {
   uni.navigateTo({ url: '/pages/order/updates?order_id=' + orderId.value })
-const goPlaza = () => {
-  uni.switchTab({ url: '/pages/plaza/index' })
 }
 
 onMounted(() => {

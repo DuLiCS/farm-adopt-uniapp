@@ -87,11 +87,12 @@
 
  <view v-if="showPoster" class="poster-mask" @click.self="showPoster=false">
  <view class="poster-wrap">
- <canvas canvas-id="homePoster" id="homePoster" class="poster-canvas"></canvas>
- <view class="poster-actions">
- <button class="poster-save-btn" @click="savePoster">保存到相册</button>
- <button class="poster-close-btn" @click="showPoster=false">关闭</button>
- </view>
+   <view class="poster-hint">长按图片保存 · 或点击下方按钮</view>
+   <canvas canvas-id="homePoster" id="homePoster" class="poster-canvas" style="width:560rpx;height:996rpx;"></canvas>
+   <view class="poster-actions">
+     <button class="poster-save-btn" @click="savePoster">保存到相册</button>
+     <view class="poster-close-link" @click="showPoster=false">关闭</view>
+   </view>
  </view>
  </view>
 
@@ -286,48 +287,170 @@ export default {
  drawPoster() {
  const order = this.posterOrder
  if (!order) return
- const W = 630
- const H = 1120
+ const W = 630, H = 1120
  const ctx = uni.createCanvasContext('homePoster', this)
- const grad = ctx.createLinearGradient(0, 0, W, H)
- grad.addColorStop(0, '#1a3d16')
- grad.addColorStop(0.6, '#2d5a27')
- grad.addColorStop(1, '#3d6b32')
- ctx.setFillStyle(grad)
- ctx.fillRect(0, 0, W, H)
- ctx.setFillStyle('rgba(255,255,255,0.04)')
- ctx.beginPath(); ctx.arc(W * 0.85, H * 0.1, W * 0.5, 0, Math.PI * 2); ctx.fill()
- ctx.setFillStyle('rgba(255,255,255,0.03)')
- ctx.beginPath(); ctx.arc(W * 0.1, H * 0.9, W * 0.4, 0, Math.PI * 2); ctx.fill()
- ctx.setTextAlign('center')
- ctx.setFontSize(20)
- ctx.setFillStyle('rgba(255,255,255,0.4)')
- ctx.fillText('— 山南记 · 认养证书 —', W / 2, H * 0.12)
- ctx.setFontSize(82)
- ctx.setFillStyle('rgba(255,255,255,0.85)')
- ctx.fillText('🍃', W / 2, H * 0.3)
- ctx.setFontSize(44)
- ctx.setFillStyle('#ffffff')
- ctx.fillText((order.target && order.target.name) || '我的茶树', W / 2, H * 0.46)
- ctx.setFontSize(24)
- ctx.setFillStyle('rgba(255,255,255,0.55)')
- ctx.fillText('我在山南记守候着这棵树', W / 2, H * 0.55)
- ctx.setFillStyle('rgba(255,255,255,0.15)')
- ctx.fillRect(W * 0.25, H * 0.61, W * 0.5, 1)
- ctx.setFontSize(21)
- ctx.setFillStyle('rgba(255,255,255,0.5)')
- ctx.fillText('秦岭南麓 · 陕西汉中西乡', W / 2, H * 0.67)
- ctx.fillText('守候开始于 ' + (order.start_date || '').substring(0, 10), W / 2, H * 0.74)
- ctx.setFillStyle('rgba(255,255,255,0.1)')
- ctx.fillRect(W * 0.1, H * 0.82, W * 0.8, 1)
- ctx.setFontSize(32)
- ctx.setFillStyle('rgba(255,255,255,0.85)')
- ctx.fillText('山南记', W / 2, H * 0.88)
- ctx.setFontSize(21)
- ctx.setFillStyle('rgba(255,255,255,0.4)')
- ctx.fillText('shannanji.com', W / 2, H * 0.94)
- ctx.draw()
 
+ // --- Background ---
+ const bg = ctx.createLinearGradient(0, 0, 0, H)
+ bg.addColorStop(0, '#0c1f0e')
+ bg.addColorStop(0.45, '#17340f')
+ bg.addColorStop(1, '#091408')
+ ctx.setFillStyle(bg)
+ ctx.fillRect(0, 0, W, H)
+
+ // Soft green glow top-right
+ const glow = ctx.createLinearGradient(W * 0.4, 0, W, H * 0.35)
+ glow.addColorStop(0, 'rgba(74,124,63,0.22)')
+ glow.addColorStop(1, 'rgba(74,124,63,0)')
+ ctx.setFillStyle(glow)
+ ctx.fillRect(0, 0, W, H * 0.5)
+
+ // --- Outer border frame (gold) ---
+ ctx.setStrokeStyle('rgba(212,169,106,0.45)')
+ ctx.setLineWidth(1)
+ ctx.strokeRect(28, 28, W - 56, H - 56)
+ ctx.setStrokeStyle('rgba(212,169,106,0.15)')
+ ctx.setLineWidth(0.5)
+ ctx.strokeRect(38, 38, W - 76, H - 76)
+
+ // --- Corner ornaments ---
+ const cs = 36, cg = 28
+ ctx.setStrokeStyle('rgba(212,169,106,0.8)')
+ ctx.setLineWidth(1.5)
+ // top-left
+ ctx.beginPath(); ctx.moveTo(cg, cg + cs); ctx.lineTo(cg, cg); ctx.lineTo(cg + cs, cg); ctx.stroke()
+ // top-right
+ ctx.beginPath(); ctx.moveTo(W - cg - cs, cg); ctx.lineTo(W - cg, cg); ctx.lineTo(W - cg, cg + cs); ctx.stroke()
+ // bottom-left
+ ctx.beginPath(); ctx.moveTo(cg, H - cg - cs); ctx.lineTo(cg, H - cg); ctx.lineTo(cg + cs, H - cg); ctx.stroke()
+ // bottom-right
+ ctx.beginPath(); ctx.moveTo(W - cg - cs, H - cg); ctx.lineTo(W - cg, H - cg); ctx.lineTo(W - cg, H - cg - cs); ctx.stroke()
+
+ // --- Header: brand ---
+ ctx.setTextAlign('center')
+ ctx.setFontSize(17)
+ ctx.setFillStyle('rgba(212,169,106,0.75)')
+ ctx.fillText('S H A N N A N J I', W / 2, 90)
+ ctx.setFontSize(13)
+ ctx.setFillStyle('rgba(255,255,255,0.3)')
+ ctx.fillText('ADOPTION  CERTIFICATE', W / 2, 116)
+
+ // Thin rule with diamond
+ ctx.setStrokeStyle('rgba(212,169,106,0.25)')
+ ctx.setLineWidth(0.5)
+ ctx.beginPath(); ctx.moveTo(72, 136); ctx.lineTo(W / 2 - 18, 136); ctx.stroke()
+ ctx.beginPath(); ctx.moveTo(W / 2 + 18, 136); ctx.lineTo(W - 72, 136); ctx.stroke()
+ ctx.setFillStyle('rgba(212,169,106,0.65)')
+ ctx.beginPath()
+ ctx.moveTo(W / 2, 129); ctx.lineTo(W / 2 + 7, 136)
+ ctx.lineTo(W / 2, 143); ctx.lineTo(W / 2 - 7, 136)
+ ctx.closePath(); ctx.fill()
+
+ // --- Hero: emoji + name ---
+ ctx.setFontSize(108)
+ ctx.fillText('🍃', W / 2, 310)
+
+ const name = (order.target && order.target.name) || '我的茶树'
+ ctx.setFontSize(48)
+ ctx.setFillStyle('#ffffff')
+ ctx.fillText(name, W / 2, 402)
+
+ // Plan type badge (outlined pill)
+ const planText = this.planTypeText(order.plan_type) || ''
+ if (planText) {
+   const bw = planText.length * 22 + 56
+   const bx = W / 2 - bw / 2
+   const by = 420
+   ctx.setStrokeStyle('rgba(212,169,106,0.45)')
+   ctx.setLineWidth(1)
+   ctx.strokeRect(bx, by, bw, 44)
+   ctx.setFontSize(21)
+   ctx.setFillStyle('rgba(212,169,106,0.85)')
+   ctx.fillText(planText, W / 2, by + 30)
+ }
+
+ // Location tag
+ ctx.setFontSize(22)
+ ctx.setFillStyle('rgba(255,255,255,0.4)')
+ ctx.fillText('秦岭南麓 · 汉中西乡 · 海拔800m', W / 2, 508)
+
+ // Divider
+ ctx.setStrokeStyle('rgba(255,255,255,0.08)')
+ ctx.setLineWidth(1)
+ ctx.beginPath(); ctx.moveTo(72, 534); ctx.lineTo(W - 72, 534); ctx.stroke()
+
+ // --- Stats: three columns ---
+ const days = this.adoptDays(order)
+ const startStr = (order.start_date || '').substring(0, 10)
+ const expireStr = (order.expire_date || '').substring(0, 10)
+ const c1 = W / 2 - 168, c2 = W / 2, c3 = W / 2 + 168
+
+ // Vertical separators
+ ctx.setStrokeStyle('rgba(255,255,255,0.1)')
+ ctx.setLineWidth(1)
+ ctx.beginPath(); ctx.moveTo(W / 2 - 84, 558); ctx.lineTo(W / 2 - 84, 660); ctx.stroke()
+ ctx.beginPath(); ctx.moveTo(W / 2 + 84, 558); ctx.lineTo(W / 2 + 84, 660); ctx.stroke()
+
+ // Column 1: days
+ ctx.setFontSize(58)
+ ctx.setFillStyle('#ffffff')
+ ctx.fillText(String(days), c1, 632)
+ ctx.setFontSize(19)
+ ctx.setFillStyle('rgba(255,255,255,0.35)')
+ ctx.fillText('守候天数', c1, 660)
+
+ // Column 2: start
+ ctx.setFontSize(19)
+ ctx.setFillStyle('rgba(255,255,255,0.3)')
+ ctx.fillText(startStr.substring(0, 4), c2, 582)
+ ctx.setFontSize(28)
+ ctx.setFillStyle('#ffffff')
+ ctx.fillText(startStr.substring(5), c2, 618)
+ ctx.setFontSize(19)
+ ctx.setFillStyle('rgba(255,255,255,0.35)')
+ ctx.fillText('认养开始', c2, 650)
+
+ // Column 3: expire
+ ctx.setFontSize(19)
+ ctx.setFillStyle('rgba(255,255,255,0.3)')
+ ctx.fillText(expireStr.substring(0, 4), c3, 582)
+ ctx.setFontSize(28)
+ ctx.setFillStyle('#ffffff')
+ ctx.fillText(expireStr.substring(5), c3, 618)
+ ctx.setFontSize(19)
+ ctx.setFillStyle('rgba(255,255,255,0.35)')
+ ctx.fillText('守候到期', c3, 650)
+
+ // Divider
+ ctx.setStrokeStyle('rgba(255,255,255,0.08)')
+ ctx.setLineWidth(1)
+ ctx.beginPath(); ctx.moveTo(72, 684); ctx.lineTo(W - 72, 684); ctx.stroke()
+
+ // --- Quote ---
+ ctx.setFontSize(27)
+ ctx.setFillStyle('rgba(255,255,255,0.5)')
+ ctx.fillText('山南记不卖茶，', W / 2, 752)
+ ctx.fillText('我们只是帮你守着那棵树。', W / 2, 792)
+
+ // --- Bottom brand area ---
+ // Gold rule
+ ctx.setStrokeStyle('rgba(212,169,106,0.25)')
+ ctx.setLineWidth(0.5)
+ ctx.beginPath(); ctx.moveTo(72, 862); ctx.lineTo(W - 72, 862); ctx.stroke()
+
+ ctx.setFontSize(42)
+ ctx.setFillStyle('rgba(212,169,106,0.9)')
+ ctx.fillText('山南记', W / 2, 936)
+
+ ctx.setFontSize(17)
+ ctx.setFillStyle('rgba(255,255,255,0.28)')
+ ctx.fillText('shannanji.com', W / 2, 970)
+
+ ctx.setFontSize(18)
+ ctx.setFillStyle('rgba(255,255,255,0.18)')
+ ctx.fillText('这里有一棵树，等待有缘人', W / 2, 1042)
+
+ ctx.draw()
  },
  savePoster() {
  uni.canvasToTempFilePath({
@@ -408,12 +531,26 @@ export default {
 .settings-section { margin: 32rpx; background: white; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); }
 .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 32rpx; font-size: 28rpx; color: #666; }
 .arrow { font-size: 32rpx; color: #ccc; }
-.poster-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-.poster-wrap { display: flex; flex-direction: column; align-items: center; }
-.poster-canvas { width: 630rpx; height: 1120rpx; border-radius: 12rpx; }
-.poster-actions { margin-top: 32rpx; display: flex; gap: 24rpx; }
-.poster-save-btn { background: #2d5a27; color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
-.poster-close-btn { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 50rpx; padding: 20rpx 48rpx; font-size: 28rpx; }
+.poster-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.92); z-index: 200;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+}
+.poster-wrap { display: flex; flex-direction: column; align-items: center; padding: 0 40rpx; }
+.poster-hint { font-size: 22rpx; color: rgba(255,255,255,0.35); margin-bottom: 20rpx; letter-spacing: 0.5px; }
+.poster-canvas {
+  width: 560rpx; height: 996rpx;
+  border-radius: 8rpx;
+  box-shadow: 0 24rpx 80rpx rgba(0,0,0,0.6), 0 0 0 1rpx rgba(212,169,106,0.2);
+}
+.poster-actions { margin-top: 36rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; width: 100%; }
+.poster-save-btn {
+  background: linear-gradient(135deg, #2d5a27, #4a7c3f);
+  color: white; border: none; border-radius: 999rpx;
+  padding: 24rpx 0; font-size: 30rpx; width: 480rpx;
+  box-shadow: 0 8rpx 24rpx rgba(45,90,39,0.4);
+}
+.poster-close-link { font-size: 26rpx; color: rgba(255,255,255,0.35); padding: 8rpx 40rpx; }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 .skel { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 .skeleton-order { background: white; border-radius: 20rpx; overflow: hidden; margin-bottom: 24rpx; display: flex; height: 180rpx; }

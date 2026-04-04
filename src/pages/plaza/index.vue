@@ -70,11 +70,6 @@
     <view class="section" v-if="availableTargets.length > 0">
       <view class="section-header">
         <view class="section-title">等待有缘人</view>
-        <view class="filter-tabs">
-          <view class="filter-tab" :class="{ active: filterType === 'all' }" @click="filterType = 'all'">全部</view>
-          <view class="filter-tab" :class="{ active: filterType === 'tea' }" @click="filterType = 'tea'">🍃 茶树</view>
-          <view class="filter-tab" :class="{ active: filterType === 'plant' }" @click="filterType = 'plant'">🌿 植物</view>
-        </view>
       </view>
       <view class="target-grid" v-if="filteredAvailable.length > 0">
         <view class="target-card" v-for="target in filteredAvailable" :key="target.id" @click="goPreview(target.id)">
@@ -233,7 +228,6 @@ export default {
       adoptedTargets: [],
       isLoggedIn: false,
       phone: '',
-      filterType: 'all',
       targetsLoaded: false,
       sensorData: null,
       latestLog: null,
@@ -289,13 +283,10 @@ export default {
       const diffDays = Math.ceil((new Date(next) - now) / 86400000)
       const name = JIEQI[next]
       return { type: 'countdown', name, days: diffDays, copy: JIEQI_COPY[name] || '' }
+    },
     maskedPhone() {
       if (!this.phone || this.phone.length < 8) return ''
       return this.phone.slice(-4)
-    },
-    filteredAvailable() {
-      if (this.filterType === 'all') return this.availableTargets
-      return this.availableTargets.filter(t => (t.type || '').toLowerCase() === this.filterType)
     },
     sensorUpdateText() {
       if (!this.sensorData || !this.sensorData.recorded_at) return ''
