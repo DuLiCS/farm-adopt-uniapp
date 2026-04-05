@@ -363,10 +363,20 @@ const drawReport = () => {
     const colW = W / 4
     const statsY = 540
 
-    // stats background pill
+    // stats background pill (roundRect not supported in uni canvas, draw manually)
+    const rx = 40, ry = statsY - 20, rw = W - 80, rh = 110, rr = 16
     ctx.setFillStyle('rgba(255,255,255,0.05)')
     ctx.beginPath()
-    ctx.roundRect(40, statsY - 20, W - 80, 110, 16)
+    ctx.moveTo(rx + rr, ry)
+    ctx.lineTo(rx + rw - rr, ry)
+    ctx.arc(rx + rw - rr, ry + rr, rr, -Math.PI / 2, 0)
+    ctx.lineTo(rx + rw, ry + rh - rr)
+    ctx.arc(rx + rw - rr, ry + rh - rr, rr, 0, Math.PI / 2)
+    ctx.lineTo(rx + rr, ry + rh)
+    ctx.arc(rx + rr, ry + rh - rr, rr, Math.PI / 2, Math.PI)
+    ctx.lineTo(rx, ry + rr)
+    ctx.arc(rx + rr, ry + rr, rr, Math.PI, Math.PI * 3 / 2)
+    ctx.closePath()
     ctx.fill()
 
     stats.forEach((s, i) => {
