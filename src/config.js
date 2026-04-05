@@ -1,7 +1,7 @@
 // 全局配置，所有常量统一在这里管理
-export const SERVER_URL = 'https://shannanji.com'
+export const SERVER_URL = 'http://150.158.24.148'
 export const DEVICE_ID = 'esp32-farm-01'
-export const BASE_URL = 'https://shannanji.com'
+export const BASE_URL = 'http://150.158.24.148'
 export const ADMIN_CONFIG = {
   username: 'admin',
   password: 'farm2026'
