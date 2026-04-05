@@ -126,7 +126,7 @@
         <view class="report-hint">长按图片保存</view>
         <canvas canvas-id="reportCanvas" id="reportCanvas"
           width="630" height="1120"
-          class="report-canvas" style="width:315px;height:560px;"></canvas>
+          class="report-canvas" style="width:315px;height:560px;display:block;"></canvas>
         <view class="report-actions">
           <button class="report-save-btn" @click="saveReport">保存到相册</button>
           <view class="report-close-link" @click="showReport=false">关闭</view>
@@ -290,14 +290,17 @@ onMounted(() => {
 
 const openReport = () => {
   showReport.value = true
-  setTimeout(drawReport, 100)
+  nextTick(drawReport)
 }
 
 const drawReport = () => {
-  nextTick(() => {
+  setTimeout(() => {
     const o = order.value
     if (!o) return
-    const ctx = uni.createCanvasContext('reportCanvas')
+    // H5: use native Canvas 2D API — coordinate system matches intrinsic width/height attrs
+    const el = document.getElementById('reportCanvas')
+    if (!el) return
+    const ctx = el.getContext('2d')
     const W = 630, H = 1120
 
     // Background gradient
@@ -305,148 +308,148 @@ const drawReport = () => {
     grad.addColorStop(0, '#0a1e0c')
     grad.addColorStop(0.5, '#0f2812')
     grad.addColorStop(1, '#071208')
-    ctx.setFillStyle(grad)
+    ctx.fillStyle = grad
     ctx.fillRect(0, 0, W, H)
 
-    // Subtle texture lines
-    ctx.setStrokeStyle('rgba(255,255,255,0.03)')
-    ctx.setLineWidth(1)
+    // Texture lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)'
+    ctx.lineWidth = 1
     for (let i = 0; i < H; i += 24) {
       ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke()
     }
 
-    // Top year badge
-    ctx.setTextAlign('center')
-    ctx.setFontSize(20)
-    ctx.setFillStyle('rgba(212,169,106,0.55)')
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
     const now = new Date()
+
+    // Year badge
+    ctx.font = '28px sans-serif'
+    ctx.fillStyle = 'rgba(212,169,106,0.55)'
     ctx.fillText(`${now.getFullYear()}  ·  守 候 报 告`, W / 2, 72)
 
-    // Thin gold rule
-    ctx.setStrokeStyle('rgba(212,169,106,0.2)')
-    ctx.setLineWidth(0.5)
-    ctx.beginPath(); ctx.moveTo(80, 90); ctx.lineTo(W - 80, 90); ctx.stroke()
+    // Gold rule
+    ctx.strokeStyle = 'rgba(212,169,106,0.2)'
+    ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(80, 100); ctx.lineTo(W - 80, 100); ctx.stroke()
 
     // Tree name
     const name = o.target?.name || '我的守候'
-    ctx.setFontSize(42)
-    ctx.setFillStyle('#ffffff')
-    ctx.fillText(name, W / 2, 158)
+    ctx.font = 'bold 56px sans-serif'
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText(name, W / 2, 175)
 
     // Location
-    ctx.setFontSize(20)
-    ctx.setFillStyle('rgba(255,255,255,0.3)')
-    ctx.fillText('秦岭南麓 · 汉中西乡 · 海拔800m', W / 2, 192)
+    ctx.font = '26px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'
+    ctx.fillText('秦岭南麓 · 汉中西乡 · 海拔800m', W / 2, 220)
 
-    // ── Main hero stat ──
+    // Hero stat
     const days = adoptDays.value
-    ctx.setFontSize(16)
-    ctx.setFillStyle('rgba(255,255,255,0.35)')
-    ctx.fillText('与这棵树', W / 2, 282)
-    ctx.setFontSize(108)
-    ctx.setFillStyle('#ffffff')
-    ctx.fillText(String(days), W / 2, 390)
-    ctx.setFontSize(36)
-    ctx.setFillStyle('rgba(255,255,255,0.6)')
-    ctx.fillText('天', W / 2, 432)
-    ctx.setFontSize(16)
-    ctx.setFillStyle('rgba(255,255,255,0.35)')
-    ctx.fillText('相处的日子', W / 2, 462)
+    ctx.font = '24px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'
+    ctx.fillText('与这棵树', W / 2, 310)
+    ctx.font = 'bold 160px sans-serif'
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText(String(days), W / 2, 440)
+    ctx.font = '40px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'
+    ctx.fillText('天', W / 2, 510)
+    ctx.font = '24px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'
+    ctx.fillText('相处的日子', W / 2, 545)
 
-    // ── 4-column stats ──
+    // 4-column stats
     const stats = [
-      { num: jieqiCount.value,       label: '个节气' },
-      { num: updates.value.length,   label: '条动态' },
-      { num: deliveredCount.value,   label: '包已寄' },
-      { num: Math.max(0, daysRemaining.value || 0), label: '天守候' },
+      { num: jieqiCount.value,                          label: '个节气' },
+      { num: updates.value.length,                      label: '条动态' },
+      { num: deliveredCount.value,                      label: '包已寄' },
+      { num: Math.max(0, daysRemaining.value || 0),     label: '天守候' },
     ]
     const colW = W / 4
-    const statsY = 540
+    const statsY = 630
 
-    // stats background pill (roundRect not supported in uni canvas, draw manually)
-    const rx = 40, ry = statsY - 20, rw = W - 80, rh = 110, rr = 16
-    ctx.setFillStyle('rgba(255,255,255,0.05)')
+    // Pill background
+    ctx.fillStyle = 'rgba(255,255,255,0.05)'
     ctx.beginPath()
-    ctx.moveTo(rx + rr, ry)
-    ctx.lineTo(rx + rw - rr, ry)
-    ctx.arc(rx + rw - rr, ry + rr, rr, -Math.PI / 2, 0)
-    ctx.lineTo(rx + rw, ry + rh - rr)
-    ctx.arc(rx + rw - rr, ry + rh - rr, rr, 0, Math.PI / 2)
-    ctx.lineTo(rx + rr, ry + rh)
-    ctx.arc(rx + rr, ry + rh - rr, rr, Math.PI / 2, Math.PI)
-    ctx.lineTo(rx, ry + rr)
-    ctx.arc(rx + rr, ry + rr, rr, Math.PI, Math.PI * 3 / 2)
+    const px = 40, py = statsY - 22, pw = W - 80, ph = 120, pr = 16
+    ctx.moveTo(px + pr, py)
+    ctx.lineTo(px + pw - pr, py)
+    ctx.arc(px + pw - pr, py + pr, pr, -Math.PI / 2, 0)
+    ctx.lineTo(px + pw, py + ph - pr)
+    ctx.arc(px + pw - pr, py + ph - pr, pr, 0, Math.PI / 2)
+    ctx.lineTo(px + pr, py + ph)
+    ctx.arc(px + pr, py + ph - pr, pr, Math.PI / 2, Math.PI)
+    ctx.lineTo(px, py + pr)
+    ctx.arc(px + pr, py + pr, pr, Math.PI, Math.PI * 3 / 2)
     ctx.closePath()
     ctx.fill()
 
     stats.forEach((s, i) => {
       const cx = colW * i + colW / 2
-      ctx.setFontSize(46)
-      ctx.setFillStyle('#ffffff')
-      ctx.fillText(String(s.num), cx, statsY + 54)
-      ctx.setFontSize(18)
-      ctx.setFillStyle('rgba(255,255,255,0.4)')
-      ctx.fillText(s.label, cx, statsY + 80)
+      ctx.font = 'bold 56px sans-serif'
+      ctx.fillStyle = '#ffffff'
+      ctx.fillText(String(s.num), cx, statsY + 44)
+      ctx.font = '22px sans-serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'
+      ctx.fillText(s.label, cx, statsY + 88)
       if (i > 0) {
-        ctx.setStrokeStyle('rgba(255,255,255,0.1)')
-        ctx.setLineWidth(1)
-        ctx.beginPath(); ctx.moveTo(cx - colW / 2, statsY + 4); ctx.lineTo(cx - colW / 2, statsY + 92); ctx.stroke()
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(cx - colW / 2, statsY + 8)
+        ctx.lineTo(cx - colW / 2, statsY + 108)
+        ctx.stroke()
       }
     })
 
-    // ── Mood quote ──
-    ctx.setStrokeStyle('rgba(212,169,106,0.15)')
-    ctx.setLineWidth(0.5)
-    ctx.beginPath(); ctx.moveTo(80, 690); ctx.lineTo(W - 80, 690); ctx.stroke()
+    // Mood quote
+    ctx.strokeStyle = 'rgba(212,169,106,0.15)'
+    ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(80, 800); ctx.lineTo(W - 80, 800); ctx.stroke()
 
-    ctx.setFontSize(22)
-    ctx.setFillStyle('rgba(255,255,255,0.5)')
-    // Word-wrap the mood text (~24 chars per line)
+    ctx.font = '28px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'
     const mood = treeMoodText.value
     const lines = []
-    const maxW = 460
+    const maxLineW = 500
     let cur = ''
     for (const ch of mood) {
       cur += ch
-      if (ctx.measureText(cur).width > maxW) { lines.push(cur.slice(0, -1)); cur = ch }
+      if (ctx.measureText(cur).width > maxLineW) { lines.push(cur.slice(0, -1)); cur = ch }
     }
     if (cur) lines.push(cur)
-    lines.forEach((l, i) => ctx.fillText(l, W / 2, 730 + i * 36))
+    lines.forEach((l, i) => ctx.fillText(l, W / 2, 850 + i * 44))
 
-    // ── Dedication ──
+    // Dedication
     if (dedication.value) {
-      const dedY = 730 + lines.length * 36 + 40
-      ctx.setFontSize(20)
-      ctx.setFillStyle('rgba(212,169,106,0.7)')
+      const dedY = 850 + lines.length * 44 + 40
+      ctx.font = '26px sans-serif'
+      ctx.fillStyle = 'rgba(212,169,106,0.7)'
       ctx.fillText(`"${dedication.value}"`, W / 2, dedY)
     }
 
-    // ── Footer ──
-    ctx.setStrokeStyle('rgba(212,169,106,0.2)')
-    ctx.setLineWidth(0.5)
-    ctx.beginPath(); ctx.moveTo(80, H - 90); ctx.lineTo(W - 80, H - 90); ctx.stroke()
-    ctx.setFontSize(22)
-    ctx.setFillStyle('rgba(212,169,106,0.6)')
-    ctx.fillText('山 南 记', W / 2, H - 62)
-    ctx.setFontSize(17)
-    ctx.setFillStyle('rgba(255,255,255,0.2)')
-    ctx.fillText('shannanji.com', W / 2, H - 40)
-
-    ctx.draw()
-  })
+    // Footer
+    ctx.strokeStyle = 'rgba(212,169,106,0.2)'
+    ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(80, H - 100); ctx.lineTo(W - 80, H - 100); ctx.stroke()
+    ctx.font = '30px sans-serif'
+    ctx.fillStyle = 'rgba(212,169,106,0.6)'
+    ctx.fillText('山 南 记', W / 2, H - 66)
+    ctx.font = '22px sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.2)'
+    ctx.fillText('shannanji.com', W / 2, H - 38)
+  }, 100)
 }
 
 const saveReport = () => {
-  uni.canvasToTempFilePath({
-    canvasId: 'reportCanvas',
-    success: (res) => {
-      uni.saveImageToPhotosAlbum({
-        filePath: res.tempFilePath,
-        success: () => uni.showToast({ title: '已保存到相册', icon: 'success' }),
-        fail: () => uni.showToast({ title: '保存失败，请长按图片保存', icon: 'none' })
-      })
-    }
-  })
+  const el = document.getElementById('reportCanvas')
+  if (!el) return
+  const dataUrl = el.toDataURL('image/png')
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = '山南记守候报告.png'
+  a.click()
+  uni.showToast({ title: '已开始下载', icon: 'success' })
 }
 
 const loadData = async () => {
