@@ -125,7 +125,8 @@
       <view class="report-wrap">
         <view class="report-hint">长按图片保存</view>
         <canvas canvas-id="reportCanvas" id="reportCanvas"
-          class="report-canvas" style="width:560rpx;height:996rpx;"></canvas>
+          width="630" height="1120"
+          class="report-canvas" style="width:315px;height:560px;"></canvas>
         <view class="report-actions">
           <button class="report-save-btn" @click="saveReport">保存到相册</button>
           <view class="report-close-link" @click="showReport=false">关闭</view>
@@ -154,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { getMyOrders, getOrderUpdates, getOrderDeliveries } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
 import { getTreeMood, countJieqiBetween } from '@/utils/treeMood.js'
@@ -287,10 +288,13 @@ onMounted(() => {
   }
 })
 
-const openReport = () => { showReport.value = true; drawReport() }
+const openReport = () => {
+  showReport.value = true
+  setTimeout(drawReport, 100)
+}
 
 const drawReport = () => {
-  uni.nextTick(() => {
+  nextTick(() => {
     const o = order.value
     if (!o) return
     const ctx = uni.createCanvasContext('reportCanvas')
