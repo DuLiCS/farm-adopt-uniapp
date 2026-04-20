@@ -40,6 +40,7 @@
 
 <script>
 import { register as apiRegister } from '@/api/auth.js'
+import { storage } from '@/utils/storage'
 
 export default {
   data() {
@@ -74,8 +75,8 @@ export default {
       uni.showLoading({ title: '注册中...', mask: true })
       try {
         const res = await apiRegister(this.phone, this.password, this.nickname.trim() || undefined)
-        uni.setStorageSync('token', res.access_token)
-        uni.setStorageSync('phone', this.phone)
+        storage.setToken(res.access_token)
+        storage.setPhone(this.phone)
         uni.hideLoading()
         uni.showToast({ title: '注册成功', icon: 'success' })
         this.loading = false

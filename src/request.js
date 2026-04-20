@@ -1,18 +1,7 @@
 import { BASE_URL } from './config'
+import { storage } from './utils/storage'
 
-const TOKEN_KEY = 'token'
-
-function getToken() {
-  return uni.getStorageSync(TOKEN_KEY) || ''
-}
-
-function setToken(token) {
-  uni.setStorageSync(TOKEN_KEY, token)
-}
-
-function removeToken() {
-  uni.removeStorageSync(TOKEN_KEY)
-}
+const { getToken, setToken, removeToken } = storage
 
 function request(url, options = {}) {
   return new Promise((resolve, reject) => {

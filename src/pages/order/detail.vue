@@ -159,6 +159,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { getMyOrders, getOrderUpdates, getOrderDeliveries } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
 import { getTreeMood, countJieqiBetween } from '@/utils/treeMood.js'
+import { storage } from '@/utils/storage'
 
 const order = ref(null)
 const updates = ref([])
@@ -283,7 +284,7 @@ onMounted(() => {
   if (orderId.value) {
     loadData()
     // 读取本地存储的寄语（兼容后端未存的情况）
-    const local = uni.getStorageSync('dedication_' + orderId.value) || ''
+    const local = storage.getDedication(orderId.value)
     dedication.value = local
   }
 })

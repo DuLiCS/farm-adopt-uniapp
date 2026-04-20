@@ -1,28 +1,17 @@
 <script>
+import { storage } from '@/utils/storage'
+
 export default {
   onLaunch: function() {
-    console.log('App Launch - UniApp started')
-    console.log('uni object:', typeof uni)
-    console.log('Vue version:', window.Vue ? window.Vue.version : 'not available')
-    
-    // 全局启动路由判断
-    const token = uni.getStorageSync('token')
-    // 使用 reLaunch 确保栈清空，避免返回
+    const token = storage.getToken()
     if (!token) {
       uni.reLaunch({ url: '/pages/plaza/index' })
     } else {
       uni.reLaunch({ url: '/pages/home/index' })
     }
   },
-  onShow: function() {
-    console.log('App Show')
-  },
-  onHide: function() {
-    console.log('App Hide')
-  },
-  mounted() {
-    console.log('App mounted - Vue component mounted')
-  }
+  onShow: function() {},
+  onHide: function() {}
 }
 </script>
 

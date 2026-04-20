@@ -155,6 +155,7 @@
 <script>
 import { getPlazaTargets } from '@/api/plaza.js'
 import { SERVER_URL } from '@/config.js'
+import { storage } from '@/utils/storage'
 
 const JIEQI = {
   '2026-01-05': '小寒', '2026-01-20': '大寒',
@@ -246,9 +247,8 @@ export default {
   },
 
   onShow() {
-    const token = uni.getStorageSync('token')
-    this.isLoggedIn = !!token
-    this.phone = uni.getStorageSync('phone') || ''
+    this.isLoggedIn = !!storage.getToken()
+    this.phone = storage.getPhone()
     this.loadTargets()
   },
 

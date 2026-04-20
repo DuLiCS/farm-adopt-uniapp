@@ -37,6 +37,7 @@
 
 <script>
 import { login } from '@/api/auth.js'
+import { storage } from '@/utils/storage'
 
 export default {
   data() {
@@ -62,8 +63,8 @@ export default {
       uni.showLoading({ title: '登录中...', mask: true })
       try {
         const res = await login(this.phone, this.password)
-        uni.setStorageSync('token', res.access_token)
- uni.setStorageSync('phone', this.phone)
+        storage.setToken(res.access_token)
+        storage.setPhone(this.phone)
         uni.hideLoading()
         uni.showToast({ title: '登录成功', icon: 'success' })
         // 跳转到首页（tabBar页面）

@@ -124,28 +124,8 @@
 <script>
 import { getMyOrders, getOrderUpdates } from '@/api/orders.js'
 import { SERVER_URL } from '@/config.js'
-import { getTreeMood, JIEQI_FARM_COPY } from '@/utils/treeMood.js'
-
-const JIEQI = {
-  '2026-01-05':'小寒','2026-01-20':'大寒','2026-02-04':'立春','2026-02-19':'雨水',
-  '2026-03-06':'惊蛰','2026-03-20':'春分','2026-04-05':'清明','2026-04-20':'谷雨',
-  '2026-05-06':'立夏','2026-05-21':'小满','2026-06-06':'芒种','2026-06-21':'夏至',
-  '2026-07-07':'小暑','2026-07-23':'大暑','2026-08-07':'立秋','2026-08-23':'处暑',
-  '2026-09-08':'白露','2026-09-23':'秋分','2026-10-08':'寒露','2026-10-23':'霜降',
-  '2026-11-07':'立冬','2026-11-22':'小雪','2026-12-07':'大雪','2026-12-22':'冬至',
-  '2027-01-05':'小寒','2027-01-20':'大寒','2027-02-03':'立春','2027-02-18':'雨水',
-  '2027-03-06':'惊蛰','2027-03-21':'春分','2027-04-05':'清明','2027-04-20':'谷雨',
-  '2027-05-06':'立夏','2027-05-21':'小满','2027-06-06':'芒种','2027-06-21':'夏至',
-  '2027-07-07':'小暑','2027-07-23':'大暑','2027-08-07':'立秋','2027-08-23':'处暑',
-  '2027-09-08':'白露','2027-09-23':'秋分','2027-10-08':'寒露','2027-10-23':'霜降',
-  '2027-11-07':'立冬','2027-11-22':'小雪','2027-12-07':'大雪','2027-12-22':'冬至',
-  '2028-01-06':'小寒','2028-01-21':'大寒','2028-02-04':'立春','2028-02-19':'雨水',
-  '2028-03-05':'惊蛰','2028-03-20':'春分','2028-04-04':'清明','2028-04-19':'谷雨',
-  '2028-05-05':'立夏','2028-05-20':'小满','2028-06-05':'芒种','2028-06-21':'夏至',
-  '2028-07-06':'小暑','2028-07-22':'大暑','2028-08-07':'立秋','2028-08-22':'处暑',
-  '2028-09-07':'白露','2028-09-22':'秋分','2028-10-07':'寒露','2028-10-22':'霜降',
-  '2028-11-07':'立冬','2028-11-21':'小雪','2028-12-06':'大雪','2028-12-21':'冬至',
-}
+import { getTreeMood, JIEQI_FARM_COPY, JIEQI } from '@/utils/treeMood.js'
+import { storage } from '@/utils/storage'
 
 export default {
  data() {
@@ -194,18 +174,15 @@ export default {
  },
 
  onLoad() {
- const token = uni.getStorageSync('token')
- if (!token) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
- this.phone = uni.getStorageSync('phone') || ''
+ if (!storage.getToken()) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
+ this.phone = storage.getPhone()
  },
 
  onShow() {
- const token = uni.getStorageSync('token')
- if (!token) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
+ if (!storage.getToken()) { uni.redirectTo({ url: '/pages/plaza/index' }); return }
  this.loadOrders()
- // 恢复节气横幅关闭状态（每天重置）
  const today = new Date().toISOString().substring(0, 10)
- this.jieqiDismissed = !!uni.getStorageSync('jieqi_dismissed_' + today)
+ this.jieqiDismissed = storage.getJieqiDismissed(today)
  },
 
  onPullDownRefresh() {
@@ -259,7 +236,7 @@ export default {
  },
  dismissJieqi() {
    const today = new Date().toISOString().substring(0, 10)
-   uni.setStorageSync('jieqi_dismissed_' + today, true)
+   storage.setJieqiDismissed(today)
    this.jieqiDismissed = true
  },
  handleLogout() {

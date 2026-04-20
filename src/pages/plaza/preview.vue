@@ -207,6 +207,7 @@
 import { getPlazaTargetDetail } from '@/api/plaza.js'
 import UCharts from '@/static/u-charts.min.js'
 import { SERVER_URL } from '@/config.js'
+import { storage } from '@/utils/storage'
 
 export default {
   data() {return {
@@ -605,7 +606,7 @@ export default {
 
     submitOrder() {
       if (!this.canSubmit) return
-      const token = uni.getStorageSync('token') || ''
+      const token = storage.getToken()
       if (!token) {
         uni.showToast({ title: '请先登录', icon: 'none' })
         setTimeout(() => { uni.navigateTo({ url: '/pages/login/index' }) }, 1500)
@@ -626,7 +627,7 @@ export default {
         const res = await uni.request({
           url: SERVER_URL + '/api/orders/',
           method: 'POST',
-          header: { 'Authorization': 'Bearer ' + (uni.getStorageSync('token') || '') },
+          header: { 'Authorization': 'Bearer ' + storage.getToken() },
           data: {
             target_id: this.target.id,
             plan_type: this.selectedPlanId,
@@ -643,7 +644,7 @@ export default {
           this.showAddressForm = false
           // 本地存寄语，用 orderId 作 key（兼容后端不存的情况）
           if (this.address.dedication) {
-            uni.setStorageSync('dedication_' + res.data.id, this.address.dedication)
+            storage.setDedication(res.data.id, this.address.dedication)
           }
           const targetName = encodeURIComponent(this.target && this.target.name || '')
  uni.redirectTo({ url: '/pages/success/index?order_id=' + res.data.id + '&target_name=' + targetName })
