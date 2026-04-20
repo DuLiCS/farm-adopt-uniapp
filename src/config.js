@@ -1,11 +1,8 @@
 // 全局配置，所有常量统一在这里管理
-export const SERVER_URL = 'http://150.158.24.148'
-export const DEVICE_ID = 'esp32-farm-01'
+// 备案完成后将 BASE_URL 改为域名，SERVER_URL 自动跟随
 export const BASE_URL = 'http://150.158.24.148'
-export const ADMIN_CONFIG = {
-  username: 'admin',
-  password: 'farm2026'
-}
+export const SERVER_URL = BASE_URL
+export const DEVICE_ID = 'esp32-farm-01'
 export const PLANS = [
   {
     id: 'tea_basic',
