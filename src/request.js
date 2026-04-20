@@ -35,9 +35,10 @@ function request(url, options = {}) {
       method,
       header,
       data,
+      timeout: 10000,
       success: (res) => {
         if (res.statusCode === 401) {
-          uni.removeStorageSync('token')
+          removeToken()
           uni.removeStorageSync('phone')
           const pages = getCurrentPages()
           const currentRoute = pages.length ? pages[pages.length - 1].route : ''
@@ -49,13 +50,16 @@ function request(url, options = {}) {
           }
           reject({ message: '登录已过期' })
         } else if (res.statusCode >= 400) {
-          reject(res.data || '请求失败')
+          const msg = res.data?.detail || res.data?.message || '请求失败'
+          reject(typeof msg === 'string' ? msg : '请求失败')
         } else {
           resolve(res.data)
         }
       },
       fail: (err) => {
-        reject(err || '山南信号不好，稍后再试试')
+        // errMsg: 'request:fail timeout' 或其他网络错误
+        const isTimeout = err?.errMsg?.includes('timeout')
+        reject(isTimeout ? '请求超时，请检查网络' : (err?.errMsg || '山南信号不好，稍后再试试'))
       }
     })
   })

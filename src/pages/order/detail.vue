@@ -294,7 +294,6 @@ const openReport = () => {
 }
 
 const drawReport = () => {
-  setTimeout(() => {
     const o = order.value
     if (!o) return
     // H5: use native Canvas 2D API — coordinate system matches intrinsic width/height attrs
@@ -438,7 +437,6 @@ const drawReport = () => {
     ctx.font = '22px sans-serif'
     ctx.fillStyle = 'rgba(255,255,255,0.2)'
     ctx.fillText('shannanji.com', W / 2, H - 38)
-  }, 100)
 }
 
 const saveReport = () => {
